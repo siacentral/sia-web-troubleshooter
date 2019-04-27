@@ -1,0 +1,383 @@
+@require "vars";
+
+* {
+	box-sizing: border-box;
+}
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	font-size: 16px;
+	color: rgba(0, 0, 0, 0.84);
+	background-color: #f5f5f5;
+	font-family: sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	overflow: hidden;
+}
+
+#splash-loader {
+	position: fixed;
+	display: flex;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #ffffff;
+	color: primary;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	z-index: 9999;
+
+	img {
+		width: 50vw;
+		height: 50vw;
+		max-width: 300px;
+		max-height: 300px;
+	}
+
+	@media screen and (orientation landscape) {
+		img {
+			width: 50vh;
+			height: 50vh;
+		}
+	}
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Montserrat', sans-serif;
+}
+
+.page {
+	display: block;
+	font-size: 1rem;
+	width: 100vw;
+	height: 100%;
+	vertical-align: top;
+	overflow: hidden;
+}
+
+.container {
+	width: 100%;
+	margin: 0 auto;
+	padding: 15px 15px;
+}
+
+.panel {
+	position: relative;
+	display: block;
+	width: 100%;
+	padding: 15px;
+	margin-bottom: 10px;
+	background: #fff;
+	color: rgba(0, 0, 0, 0.87);
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+	border-radius: 4px;
+
+	.panel-title {
+		position: relative;
+		font-size: 1.2rem;
+		color: primary;
+		margin-bottom: 15px;
+		vertical-align: top;
+
+		> svg {
+			margin-right: 10px;
+		}
+
+		.sub-title {
+			display: inline-block;
+			font-size: 0.8rem;
+			color: rgba(0, 0, 0, 0.4);
+			margin-left: 5px;
+		}
+	}
+}
+
+.title-link {
+	position: relative;
+	display: inline-block;
+	min-width: 25px;
+	min-height: 25px;
+	text-align: right;
+	text-decoration: none;
+	color: rgba(0, 0, 0, 0.34);
+	font-size: 1.4rem;
+	float: right;
+
+	> a {
+		display: inline-block;
+		min-width: 25px;
+		min-height: 25px;
+		text-decoration: none;
+		color: rgba(0, 0, 0, 0.34);
+
+		&:hover, &:active, &:focus {
+			color: primary;
+		}
+	}
+}
+
+.dropdown-menu-item.dropdown-menu-item {
+	display: block;
+	position: static;
+	text-align: left;
+	width: 100%;
+	white-space: nowrap;
+	font-size: 1rem;
+	text-decoration: none;
+	color: rgba(0, 0, 0, 0.84);
+	padding: 4px 10px;
+	margin-bottom: 10px;
+
+	> svg {
+		width: 16px;
+		margin-right: 10px;
+	}
+
+	&:active, &:hover, &focus {
+		color: primary;
+	}
+
+	&.menu-item-danger {
+		color: red;
+	}
+}
+
+@media screen and (min-width: 767px) {
+	.container {
+		width: 767px;
+	}
+}
+
+@media screen and (min-width: 992px) {
+	.container {
+		width: 992px;
+	}
+}
+
+@media screen and (min-width: 1200px) {
+	.container {
+		width: 1200px;
+	}
+}
+
+.control {
+	position: relative;
+	margin-bottom: 15px;
+
+	&.control-inline {
+		display: inline-block;
+	}
+
+	label {
+		display: block;
+		width: 100%;
+		color: primary;
+		font-size: 0.8rem;
+		transition: all 0.3s linear;
+	}
+
+	textarea, select, input {
+		display: block;
+		padding: 4px 0;
+		font-size: 1.2rem;
+		width: 100%;
+		background: transparent;
+		border: none;
+		border-bottom: 1px solid #e5e5e5;
+		color: rgba(0, 0, 0, 0.84);
+		outline: none;
+	}
+
+	input[type="checkbox"] {
+		position: absolute;
+		display: inline-block;
+		width: auto;
+		opacity: 0;
+		padding: 0;
+
+		&:checked {
+			+ label {
+				&:before {
+					border-color: primary;
+				}
+
+				&:after {
+					position: absolute;
+					display: inline-block;
+					content: '';
+					left: 4px;
+					top: 6px;
+					width: 12px;
+					height: 12px;
+					background: primary;
+					border-radius: 2px;
+				}
+			}
+		}
+
+		+ label {
+			position: relative;
+			display: inline-block;
+			width: auto;
+			min-height: 24px;
+			padding-left: 28px;
+			padding-top: 4px;
+			color: rgba(0, 0, 0, 0.54);
+			font-size: 1rem;
+
+			&:before {
+				position: absolute;
+				display: inline-block;
+				content: '';
+				left: 0;
+				top: 2px;
+				width: 18px;
+				height: 18px;
+				border: 1px solid #CCC;
+				border-radius: 4px;
+			}
+		}
+	}
+
+	select option {
+		color: rgba(0, 0, 0, 0.84);
+	}
+}
+
+.btn {
+	display: block;
+	width: 100%;
+	outline: none;
+	background: #CCC;
+	padding: 10px 15px;
+	white-space: nowrap;
+	border: none;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px 1px rgba(0, 0, 0, 0.14);
+	transition: all 0.3s linear;
+
+	&:focus, &:active, &:hover {
+		cursor: pointer;
+		box-shadow: 0 1px 2px 1px rgba(0, 0, 0, 0.28);
+	}
+
+	&.btn-inline {
+		display: inline-block;
+		width: auto;
+		margin-right: 15px;
+	}
+
+	&.btn-success {
+		background: primary;
+		color: rgba(255, 255, 255, 0.84);
+	}
+
+	&.btn-danger {
+		background: negative-accent;
+		color: rgba(255, 255, 255, 0.84);
+	}
+
+	&:disabled {
+		opacity: 0.54;
+		cursor: default;
+	}
+}
+
+body.dark {
+	background-color: #444;
+	color: rgba(255, 255, 255, 0.84);
+
+	.panel {
+		background: #252525;
+		color: rgba(255, 255, 255, 0.84);
+
+		.panel-title {
+			color: primary-dark;
+
+			.sub-title {
+				color: rgba(255, 255, 255, 0.48);
+			}
+			.title-link {
+				color: rgba(255, 255, 255, 0.34);
+				> a {
+					color: rgba(255, 255, 255, 0.34);
+				}
+			}
+		}
+	}
+
+	.control {
+		label {
+			color: primary-dark;
+		}
+
+		textarea, select, input {
+			border-color: #555;
+			color: rgba(255, 255, 255, 0.84);
+		}
+
+		input[type="checkbox"] {
+			&:checked {
+				+ label {
+					&:before {
+						border-color: primary-dark;
+					}
+
+					&:after {
+						background: primary-dark;
+					}
+				}
+			}
+
+			+ label {
+				color: rgba(255, 255, 255, 0.84);
+
+				&:before {
+					border-color: #555;
+				}
+			}
+		}
+
+		select option {
+			color: rgba(0, 0, 0, 0.84);
+		}
+	}
+
+	.btn {
+		background: #CCC;
+
+		&.btn-success {
+			background: primary-dark;
+			color: rgba(255, 255, 255, 0.84);
+		}
+
+		&.btn-danger {
+			background: negative-accent;
+			color: rgba(255, 255, 255, 0.84);
+		}
+	}
+}
+
+.fade-enter-active {
+	transition: all .4s ease;
+}
+
+.fade-leave-active {
+	transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+
+.fade-enter, .fade-leave-to {
+	transform: translateY(30px);
+	opacity: 0;
+}
+
+@media screen and (max-width: 767px) {
+	.hide-mobile.hide-mobile {
+		display: none;
+	}
+}
