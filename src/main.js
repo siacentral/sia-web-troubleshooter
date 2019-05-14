@@ -4,10 +4,10 @@ import router from './router';
 import store from './store';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer } from '@fortawesome/pro-light-svg-icons';
+import { faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-library.add(faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer);
+library.add(faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer);
 
 Vue.component('font-awesome', FontAwesomeIcon);
 

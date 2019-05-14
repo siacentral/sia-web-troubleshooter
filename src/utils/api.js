@@ -27,12 +27,14 @@ export async function getAverageSettings() {
 }
 
 export async function getConnectability(netaddress) {
+	netaddress = encodeURIComponent(netaddress);
+
 	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/hostdb/checkconnection?netaddress=${netaddress}`, 'GET', null, true);
 
 	if (resp.type !== 'success')
 		return resp;
 
-	resp.settings = parseSettings(resp.settings);
+	resp.external_settings = parseSettings(resp.external_settings);
 
 	return resp;
 }
