@@ -4,10 +4,10 @@ import router from './router';
 import store from './store';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer } from '@fortawesome/pro-light-svg-icons';
+import { faCodeBranch, faSpinner, faSearch, faDatabase, faWifi, faExclamationTriangle, faWrench, faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-library.add(faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer);
+library.add(faCodeBranch, faSpinner, faSearch, faDatabase, faWifi, faExclamationTriangle, faWrench, faLayerGroup, faUpload, faUnlock, faClock, faBoxOpen, faBoxFull, faLink, faFileCheck, faCloudDownload, faCloudUpload, faUser, faBell, faHdd, faDownload, faRedo, faFileContract, faCogs, faFolder, faTerminal, faLock, faDollarSign, faWallet, faServer);
 
 Vue.component('font-awesome', FontAwesomeIcon);
 

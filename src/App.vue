@@ -6,6 +6,8 @@
   </div>
 </template>
 <style lang="stylus">
+@require "/styles/global.styl";
+
 #app {
 	display: grid;
 	width: 100%;
