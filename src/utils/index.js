@@ -102,7 +102,7 @@ export function parseNumberString(str, mul, units) {
 };
 
 export function parseByteString(str) {
-	return parseNumberString(str, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']).toNumber();
+	return parseNumberString(str, 1024, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']).toNumber();
 };
 
 export function formatShortTimeString(date) {
@@ -123,7 +123,7 @@ export function formatShortTimeString(date) {
 }
 
 export function formatByteString(val, dec) {
-	return numberToString(val, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
+	return numberToString(val, 1024, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
 };
 
 export function formatSiacoinString(val, dec) {

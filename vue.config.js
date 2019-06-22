@@ -1,7 +1,12 @@
 const path = require('path');
 
-process.env.VUE_APP_API_BASE_URL = 'https://app.siacentral.com/api/v1';
-process.env.VUE_APP_API_WEBSOCKET_URL = 'wss://app.siacentral.com/api/v1';
+if (process.env.API_ENV === 'local') {
+	process.env.VUE_APP_API_BASE_URL = 'http://localhost:8081/api/v1';
+	process.env.VUE_APP_API_WEBSOCKET_URL = 'ws://localhost:8081/api/v1';
+} else {
+	process.env.VUE_APP_API_BASE_URL = 'https://app.siacentral.com/api/v1';
+	process.env.VUE_APP_API_WEBSOCKET_URL = 'wss://app.siacentral.com/api/v1';
+}
 
 module.exports = {
 	chainWebpack: config => {
@@ -28,7 +33,7 @@ function addStyleResource(rule) {
 		.loader('style-resources-loader')
 		.options({
 			patterns: [
-				path.resolve(__dirname, './src/styles/global.styl')
+				path.resolve(__dirname, './src/styles/vars.styl')
 			]
 		});
 }

@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from './views/Home.vue';
+import CheckAddress from './views/CheckAddress.vue';
+import CheckResults from './views/CheckResults.vue';
 
 Vue.use(Router);
 
@@ -10,8 +11,14 @@ export default new Router({
 	routes: [
 		{
 			path: '/',
-			name: 'home',
-			component: Home
+			name: 'check address',
+			component: CheckAddress
+		},
+		{
+			path: '/results/:address',
+			name: 'check results',
+			component: CheckResults,
+			props: true
 		}
 	]
 });
