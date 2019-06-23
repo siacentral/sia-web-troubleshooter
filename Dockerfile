@@ -1,4 +1,3 @@
-FROM nginx:alpine
+FROM n8maninger/vue-router
 
-COPY ./docker-static.conf /etc/nginx/conf.d/default.conf
 COPY ./dist /usr/share/nginx/html
