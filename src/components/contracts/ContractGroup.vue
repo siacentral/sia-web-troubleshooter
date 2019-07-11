@@ -2,8 +2,8 @@
 	<div class="group">
 		<div class="step-title">{{ group.friendlyStatus }} ({{ count }})</div>
 		<div class="group-stats group-background">
-			<div class="group-item" v-if="group.status === 'obligationFailed'">
-				<div class="group-title group-negative">Burnt Collateral</div>
+			<div class="group-item group-negative" v-if="group.status === 'obligationFailed'">
+				<div class="group-title">Burnt Collateral</div>
 				{{ formatSiacoinString(group.burnt_collateral) }}
 			</div>
 			<div class="group-item" v-else>
