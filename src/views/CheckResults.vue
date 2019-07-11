@@ -49,17 +49,13 @@
 				</template>
 			</div>
 		</transition>
-		<transition name="fade" v-else appear>
-			<div class="loader">
-				<div class="loading-indicator"><font-awesome :icon="['fal', 'spinner']" /></div>
-				<div class="loading-text">Checking your host... Please wait...</div>
-			</div>
-		</transition>
+		<loader v-else text="Checking your host... Please wait..." />
 	</div>
 </template>
 
 <script>
 import DisplayPanel from '@/components/DisplayPanel';
+import Loader from '@/components/Loader';
 
 import { BigNumber } from 'bignumber.js';
 import { getAverageSettings, getConnectability } from '@/utils/api';
@@ -67,7 +63,8 @@ import { numberToString, formatByteString, formatSiacoinString, formatStoragePri
 
 export default {
 	components: {
-		DisplayPanel
+		DisplayPanel,
+		Loader
 	},
 	props: {
 		address: String
@@ -314,15 +311,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-@keyframes spin {
-    from {
-        transform:rotate(0deg);
-    }
-    to {
-        transform:rotate(360deg);
-    }
-}
-
 ul {
 	margin: 0;
 	padding-left: 20px;
@@ -334,39 +322,6 @@ ul {
 
 .panel {
 	max-width: 100%;
-}
-
-.loader {
-	position: fixed;
-	display: grid;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	background: #f5f5f5;
-	z-index: 999;
-	grid-template-rows: auto auto;
-	align-content: center;
-	justify-content: center;
-
-	.loading-indicator {
-		text-align: center;
-		margin-bottom: 30px;
-
-		> * {
-			color: primary;
-			font-size: 4rem;
-			animation-name: spin;
-			animation-duration: 1500ms;
-			animation-iteration-count: infinite;
-			animation-timing-function: linear;
-		}
-	}
-
-	.loading-text {
-		color: primary;
-		font-size: 1.2rem;
-	}
 }
 
 .host-address {

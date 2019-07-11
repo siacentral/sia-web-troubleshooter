@@ -2,8 +2,8 @@
 	<transition name="fade" appear>
 		<div>
 			<div class="step-title" v-if="title">{{ title }}</div>
-			<div class="panel icon-panel">
-				<div :class="{ 'panel-icon': true, 'icon-error': error }">
+			<div :class="{ 'panel': true,  'icon-panel': (icon && icon.length > 0) }">
+				<div v-if="icon" :class="{ 'panel-icon': true, 'icon-error': error }">
 					<font-awesome :icon="['fal', icon]" />
 				</div>
 				<div class="panel-content">
@@ -12,8 +12,8 @@
 			</div>
 			<div class="panel-extras" v-if="extras && extras.length > 0">
 				<template v-for="extra in extras">
-					<div :key="`key-${extra.key}`" class="extra-key">{{ extra.key }}</div>
-					<div :key="`value-${extra.key}`" class="extra-value">{{ extra.value }}</div>
+					<div :key="`key-${extra.key || extra.value}`" class="extra-key">{{ extra.key }}</div>
+					<div :key="`value-${extra.key || extra.value}`" class="extra-value">{{ extra.value }}</div>
 				</template>
 			</div>
 		</div>
@@ -32,15 +32,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.host-address {
-	background: #efefef;
-    padding: 5px 8px;
-    border-radius: 3px;
-    color: #19cf86;
-    font-size: 0.8rem;
-    margin-top: 10px;
-}
-
 .panel {
 	height: 100%;
 }
@@ -59,7 +50,7 @@ export default {
 	padding: 25px 15px 15px;
 	grid-template-columns: auto minmax(0, 1fr);
 	grid-gap: 15px;
-	background: #e5e5e5;
+	background: light-gray;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
 	box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.1);

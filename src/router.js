@@ -1,7 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import CheckAddress from './views/CheckAddress.vue';
-import CheckResults from './views/CheckResults.vue';
 
 Vue.use(Router);
 
@@ -12,13 +10,18 @@ export default new Router({
 		{
 			path: '/',
 			name: 'check address',
-			component: CheckAddress
+			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
 		},
 		{
 			path: '/results/:address',
 			name: 'check results',
-			component: CheckResults,
+			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: true
+		},
+		{
+			path: '/contracts',
+			name: 'check contracts',
+			component: () => import(/* webpackChunkName: "contracts-check" */ `@/views/CheckContracts.vue`)
 		}
 	]
 });

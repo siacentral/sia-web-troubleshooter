@@ -1,4 +1,6 @@
 import BigNumber from 'bignumber.js';
+import Decimal from 'decimal.js-light';
+import Store from '@/store';
 
 export function getLastItems(arr, n) {
 	const len = arr.length,
@@ -102,7 +104,7 @@ export function parseNumberString(str, mul, units) {
 };
 
 export function parseByteString(str) {
-	return parseNumberString(str, 1024, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']).toNumber();
+	return parseNumberString(str, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']).toNumber();
 };
 
 export function formatShortTimeString(date) {
@@ -123,22 +125,96 @@ export function formatShortTimeString(date) {
 }
 
 export function formatByteString(val, dec) {
-	return numberToString(val, 1024, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
+	return numberToString(val, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
 };
 
 export function formatSiacoinString(val, dec) {
 	if (!isFinite(dec))
 		dec = 2;
 
-	if (val.isEqualTo(0))
+	if (!val || val.isEqualTo(0))
 		return '0 SC';
 
-	return numberToString(val.dividedBy(1e12), 1000, ['pSC', 'nSC', 'uSC', 'mSC', 'SC', 'KSC', 'MSC', 'GSC', 'TSC'], dec);
+	return `${sigDecimalRound(val.dividedBy(1e12).dividedBy(Math.pow(1000, 4)).toString(), dec)} SC`;
 };
+
+function sigDecimalRound(val, num, min) {
+	num = num || 2;
+	const pieces = val.split('.');
+
+	if (pieces.length < 2)
+		return val;
+
+	const w = new Decimal(pieces[0]),
+		d = new Decimal(`0.${pieces[1]}`).toSignificantDigits(num);
+
+	let str = w.plus(d).toDecimalPlaces(6).toFixed();
+
+	str = str.split('.');
+
+	if (str.length === 1 && min)
+		str.push(''.padEnd(min, '0'));
+	else if (str.length === 2 && min)
+		str[1] = str[1].padEnd(min, '0');
+
+	return str.join('.');
+};
+
+export function formatSCToUSDString(val) {
+	const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 20 }),
+		sigs = Math.pow(1000, 4);
+
+	if (val.isEqualTo(0))
+		return formatter.format(0);
+
+	const usd = val.dividedBy(1e12).dividedBy(sigs).times(Store.state.coinPrice['usd']).toNumber(),
+		formatted = formatter.format(usd);
+
+	return `$${sigDecimalRound(formatted.substr(1), 2, 2)}`;
+};
+
+export function formatStorageToUSDString(val) {
+	return formatSCToUSDString(val.times(1e12).times(4320));
+}
 
 export function formatStoragePriceString(val) {
 	return formatSiacoinString(val.times(1e12).times(4320));
 };
+
+export function compareVersions(ver1, ver2) {
+	const v1 = ver1.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0].split('.'),
+		v2 = ver2.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0].split('.'),
+		l = v1.length > v2.length ? v2.length : v1.length;
+
+	for (let i = 0; i < l; i++) {
+		const a = parseInt(v1[i], 10),
+			b = parseInt(v2[i], 10);
+
+		if (a < b)
+			return -1;
+		else if (a > b)
+			return 1;
+	}
+
+	return 0;
+}
+
+let timeouts = {};
+
+export function debounce(fn, delay) {
+	return () => {
+		if (timeouts[fn])
+			clearTimeout(timeouts[fn]);
+
+		let args = arguments,
+			that = this;
+
+		timeouts[fn] = setTimeout(() => {
+			fn.apply(that, args);
+			timeouts[fn] = null;
+		}, delay);
+	};
+}
 
 export function formatSeconds(seconds) {
 	const denoms = [31536000, 2628000, 86400, 3600, 60, 1],
