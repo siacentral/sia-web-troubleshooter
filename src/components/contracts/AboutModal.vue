@@ -14,8 +14,7 @@
 			<h3>With Sia Daemon</h3>
 			<p>1. Open a command prompt, terminal, or bash depending on your operating system</p>
 			<p>2. Run the following command <i>siac host contracts > contracts.txt</i></p>
-			<p>3. Upload the file to the utility</p>
-			<img src="../../assets/upload-contracts.png" alt="SiaCentral Contract Troubleshooter Screenshot" />
+			<p>3. Paste or upload the file to the utility</p>
 		</div>
 		<div class="use-section">
 			<h3>With Sia-UI</h3>
@@ -23,8 +22,7 @@
 			<p>2. In the bottom box type <i>host contracts</i></p>
 			<p>3. Copy all of the output</p>
 			<img src="../../assets/sia-ui-contracts.png" alt="Sia-UI contracts output" />
-			<p>4. Paste the output into the utility</p>
-			<img src="../../assets/paste-contracts.png" alt="SiaCentral Contract Troubleshooter Screenshot" />
+			<p>4 Paste or upload the output into the utility</p>
 		</div>
 	</modal>
 </template>

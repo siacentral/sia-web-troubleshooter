@@ -16,7 +16,7 @@ async function sendJSONRequest(url, method, data, excludeToken) {
 }
 
 export async function getAverageSettings() {
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/hostdb/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/explorer/hosts/average`, 'GET', null, true);
 
 	if (resp.type !== 'success')
 		return resp;
@@ -29,7 +29,7 @@ export async function getAverageSettings() {
 export async function getConnectability(netaddress) {
 	netaddress = encodeURIComponent(netaddress);
 
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/hostdb/checkconnection?netaddress=${netaddress}`, 'GET', null, true);
+	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/explorer/hosts/checkconnection?netaddress=${netaddress}`, 'GET', null, true);
 
 	if (resp.type !== 'success')
 		return resp;
