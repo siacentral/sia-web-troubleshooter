@@ -124,6 +124,19 @@ export function formatShortTimeString(date) {
 	return `${hours}:${minutes} ${meridian}`;
 }
 
+export function formatShortDateString(date) {
+	let m = date.getMonth() + 1,
+		d = date.getDate();
+
+	if (m < 10)
+		m = `0${m}`;
+
+	if (d < 10)
+		d = `0${d}`;
+
+	return `${m}/${d}/${date.getFullYear()}`;
+}
+
 export function formatByteString(val, dec) {
 	return numberToString(val, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
 };

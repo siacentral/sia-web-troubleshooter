@@ -59,7 +59,7 @@ import Loader from '@/components/Loader';
 
 import { BigNumber } from 'bignumber.js';
 import { getAverageSettings, getConnectability } from '@/utils/api';
-import { numberToString, formatByteString, formatSiacoinString, formatStoragePriceString } from '@/utils/index';
+import { numberToString, formatByteString, formatSiacoinString, formatStoragePriceString, formatShortDateString } from '@/utils/index';
 
 export default {
 	components: {
@@ -175,7 +175,7 @@ export default {
 			publicKey: null,
 			reasons: [],
 			resolutions: [],
-			dbEntry: {},
+			announcements: [],
 			error: null
 		};
 	},
@@ -204,6 +204,22 @@ export default {
 				extras.push({
 					key: 'Public Key',
 					value: this.publicKey
+				});
+			}
+
+			if (this.announcements && this.announcements.length > 1) {
+				const announcement = this.announcements[0];
+				extras.push({
+					key: 'First Announcement',
+					value: `${announcement.net_address} (${formatShortDateString(new Date(announcement.timestamp))})`
+				});
+			}
+
+			if (this.announcements && this.announcements.length > 0) {
+				const announcement = this.announcements[this.announcements.length - 1];
+				extras.push({
+					key: 'Last Announcement',
+					value: `${announcement.net_address} (${formatShortDateString(new Date(announcement.timestamp))})`
 				});
 			}
 
@@ -249,8 +265,6 @@ export default {
 
 				this.publicKey = resp.public_key;
 
-				console.log(resp.message);
-
 				if (resp.message !== 'success')
 					this.error = resp.message;
 
@@ -265,7 +279,7 @@ export default {
 				this.resolvedIP = resp.resolved_ip && resp.resolved_ip.length > 0 ? resp.resolved_ip : [];
 				this.reasons = resp.reasons || [];
 				this.resolutions = resp.resolutions || [];
-				this.dbEntry = resp.db_entry || {};
+				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
 				this.loaded = true;
 			} catch (ex) {
 				console.log(ex);
