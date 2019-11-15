@@ -34,6 +34,7 @@ export default {
 <style lang="stylus" scoped>
 .panel {
 	height: 100%;
+	z-index: 2;
 }
 
 .step-title {
@@ -45,7 +46,7 @@ export default {
 .panel-extras {
 	position: relative;
 	top: -10px;
-	z-index: -1;
+	z-index: 1;
 	display: grid;
 	padding: 25px 15px 15px;
 	grid-template-columns: auto minmax(0, 1fr);

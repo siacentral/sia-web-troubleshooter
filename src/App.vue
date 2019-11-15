@@ -1,15 +1,14 @@
 <template>
-  <div id="app">
-    <transition name="fade">
-		<router-view/>
-	</transition>
-  </div>
+	<div id="app">
+		<transition name="fade" mode="out-in" appear>
+			<router-view/>
+		</transition>
+	</div>
 </template>
 <style lang="stylus">
 @require "/styles/global.styl";
 
 #app {
-	display: grid;
 	width: 100%;
 	height: 100%;
 }

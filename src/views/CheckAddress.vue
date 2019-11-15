@@ -10,6 +10,9 @@
 					<button class="btn btn-success btn-inline" @click.prevent="onSubmit">Check My Host</button>
 				</div>
 			</form>
+			<div>
+				<a href="https://sia.tech" class="built-with"><img src="@/assets/built-with-sia.svg" /></a>
+			</div>
 		</div>
 	</div>
 </template>
@@ -36,21 +39,13 @@ export default {
 
 <style lang="stylus" scoped>
 .page-content {
+	display: grid;
 	width: 100%;
 	height: 100%;
-	grid-template-columns: 1fr;
-}
-
-@media screen and (min-width: 500px) {
-	.page-content {
-		grid-template-columns: 60vw;
-	}
-}
-
-@media screen and (min-width: 1200px) {
-	.page-content {
-		grid-template-columns: 30vw;
-	}
+	margin: auto;
+	grid-template-rows: minmax(0, 1fr) auto;
+	align-items: center;
+	max-width: 500px;
 }
 
 .button-wrapper {

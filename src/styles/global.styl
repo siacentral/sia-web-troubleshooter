@@ -34,7 +34,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .page {
-	position: fixed;
+	position: absolute;
 	top: 0;
 	left: 0;
 	right: 0;
@@ -44,14 +44,6 @@ h1, h2, h3, h4, h5, h6 {
 	height: 100%;
 	overflow-x: hidden;
 	overflow-y: auto;
-
-	.page-content {
-		display: grid;
-		margin: auto;
-		justify-content: center;
-    	align-content: center;
-		grid-gap: 15px;
-	}
 }
 
 .control {
@@ -262,4 +254,11 @@ h1, h2, h3, h4, h5, h6 {
 	.group-stats {
 		grid-template-columns: repeat(3, 1fr);
 	}
+}
+
+a.built-with {
+	display: block;
+	width: 100px;
+	padding: 20px 15px;
+	margin: auto;
 }

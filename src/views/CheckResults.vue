@@ -1,7 +1,7 @@
 <template>
 	<div class="page">
-		<transition name="fade" v-if="loaded" appear>
-			<div class="page-content">
+		<transition name="fade" mode="out-in" appear>
+			<div class="page-content" v-if="loaded">
 				<display-panel class="connection-step" :extras="connectionExtras" v-if="loaded && step >= 0" title="Initial Connection Check" icon="wifi" :error="step === 0">
 					<template v-if="step > 0">
 						It looks like something is listening at that net address
@@ -39,17 +39,20 @@
 						<li v-for="item in resolutions" :key="item">{{item}}</li>
 					</ul>
 				</display-panel>
-				<template v-if="loaded && step >= 3">
-					<div class="step-title">Current Configuration</div>
+				<div class="step-title">Current Configuration</div>
+				<div class="host-settings" v-if="loaded && step >= 3">
 					<display-panel class="setting" v-for="setting in settings" :key="setting.label" :icon="setting.icon">
 						<div class="setting-title">{{ setting.title }}</div>
 						<div class="setting-value">{{ setting.value }}</div>
 						<div class="setting-avg" v-if="setting.average">Average: {{ setting.average }}</div>
 					</display-panel>
-				</template>
+				</div>
+				<div>
+					<a href="https://sia.tech" class="built-with"><img src="@/assets/built-with-sia.svg" /></a>
+				</div>
 			</div>
+			<loader v-else text="Checking your host... Please wait..." />
 		</transition>
-		<loader v-else text="Checking your host... Please wait..." />
 	</div>
 </template>
 
@@ -325,6 +328,15 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.page-content {
+	max-width: 1000px;
+	margin: auto;
+
+	@media screen and (min-width: 500px) {
+		width: 80vw;
+	}
+}
+
 ul {
 	margin: 0;
 	padding-left: 20px;
@@ -332,6 +344,10 @@ ul {
 	> li {
 		margin-bottom: 5px;
 	}
+}
+
+.connection-step {
+	margin-bottom: 30px;
 }
 
 .panel {
@@ -349,9 +365,16 @@ ul {
 	overflow-x: auto;
 }
 
+.host-settings {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-gap: 15px;
+}
+
 .step-title {
 	font-size: 1.2rem;
 	color: rgba(0, 0, 0, 0.4);
+	margin-bottom: 15px;
 }
 
 .page-content {
