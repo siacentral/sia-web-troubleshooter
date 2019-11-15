@@ -4,6 +4,7 @@ FROM node:12 AS build
 WORKDIR /app
 
 COPY package*.json ./
+COPY .npmrc ./
 
 RUN npm install
 
