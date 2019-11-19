@@ -10,15 +10,18 @@
 					<button class="btn btn-success btn-inline" @click.prevent="onSubmit">Check My Host</button>
 				</div>
 			</form>
-			<div>
-				<a href="https://sia.tech" class="built-with"><img src="@/assets/built-with-sia.svg" /></a>
-			</div>
+			<logos />
 		</div>
 	</div>
 </template>
 
 <script>
+import Logos from '@/components/Logos';
+
 export default {
+	components: {
+		Logos
+	},
 	data() {
 		return {
 			netAddress: ''

@@ -5,16 +5,23 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
-		coinPrice: null
+		exchangeRate: null,
+		currency: 'sc'
 	},
 	mutations: {
-		setCoinPrice(state, price) {
+		setExchangeRate(state, price) {
 			state.coinPrice = price;
+		},
+		setCurrency(state, currency) {
+			state.currency = currency;
 		}
 	},
 	actions: {
-		setCoinPrice(context, price) {
-			context.commit('setCoinPrice', price);
+		setExchangeRate(context, price) {
+			context.commit('setExchangeRate', price);
+		},
+		setCurrency(context, currency) {
+			context.commit('setCurrency', currency);
 		}
 	}
 });

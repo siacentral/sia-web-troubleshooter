@@ -1,6 +1,20 @@
-import BigNumber from 'bignumber.js';
-import Decimal from 'decimal.js-light';
-import Store from '@/store';
+import { encode as encodeUTF8 } from '@stablelib/utf8';
+
+export async function pbkdf2(password, salt, iterations = 1e6) {
+	if (!salt)
+		salt = crypto.getRandomValues(new Uint8Array(16));
+
+	const buf = encodeUTF8(password),
+		key = await crypto.subtle.importKey('raw', buf, 'PBKDF2', false, ['deriveBits']),
+		keyBuf = new Uint8Array(await crypto.subtle.deriveBits({
+			name: 'PBKDF2',
+			hash: 'SHA-256',
+			salt,
+			iterations
+		}, key, 256));
+
+	return { salt, hash: keyBuf };
+}
 
 export function getLastItems(arr, n) {
 	const len = arr.length,
@@ -49,151 +63,6 @@ export function splitArray(arr, len) {
 	return ret;
 }
 
-export function numberToString(number, divisor, units, decimals) {
-	decimals = isFinite(decimals) ? decimals : -1;
-
-	let unit = units[0],
-		num = new BigNumber(number),
-		mag = new BigNumber(divisor);
-
-	for (let i = 0; i < units.length; i++) {
-		unit = units[i];
-
-		if (num.isLessThan(mag)) {
-			mag = mag.dividedBy(divisor);
-			break;
-		}
-
-		mag = mag.multipliedBy(divisor);
-	}
-
-	let fixed = 0;
-
-	if (decimals === -1)
-		fixed = num.dividedBy(mag).toString(10);
-	else
-		fixed = num.dividedBy(mag).toFixed(decimals);
-
-	return `${fixed} ${unit}`;
-};
-
-export function parseNumberString(str, mul, units) {
-	const unit = str.replace(/[^a-z]/gi, '');
-	let num = new BigNumber(str.replace(/[^0-9.]/g, ''), 10),
-		found = false;
-
-	if (isNaN(num) || !isFinite(num))
-		num = 0;
-
-	if (unit.length === 0)
-		return num;
-
-	for (let i = 0; i < units.length; i++) {
-		if (unit.toLowerCase() !== units[i].toLowerCase())
-			continue;
-
-		mul = Math.pow(mul, i);
-		found = true;
-		break;
-	}
-
-	if (!found)
-		throw new Error(`${unit} not found`);
-
-	return num.times(mul);
-};
-
-export function parseByteString(str) {
-	return parseNumberString(str, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']).toNumber();
-};
-
-export function formatShortTimeString(date) {
-	let hours = (date.getHours() % 12).toString(),
-		minutes = date.getMinutes().toString(),
-		meridian = date.getHours() > 12 ? 'PM' : 'AM';
-
-	if (hours === '0')
-		hours = 12;
-
-	if (hours.length === 1)
-		hours = '0' + hours.toString();
-
-	if (minutes.length === 1)
-		minutes = '0' + minutes.toString();
-
-	return `${hours}:${minutes} ${meridian}`;
-}
-
-export function formatShortDateString(date) {
-	let m = date.getMonth() + 1,
-		d = date.getDate();
-
-	if (m < 10)
-		m = `0${m}`;
-
-	if (d < 10)
-		d = `0${d}`;
-
-	return `${m}/${d}/${date.getFullYear()}`;
-}
-
-export function formatByteString(val, dec) {
-	return numberToString(val, 1000, ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'], dec);
-};
-
-export function formatSiacoinString(val, dec) {
-	if (!isFinite(dec))
-		dec = 2;
-
-	if (!val || val.isEqualTo(0))
-		return '0 SC';
-
-	return `${sigDecimalRound(val.dividedBy(1e12).dividedBy(Math.pow(1000, 4)).toString(), dec)} SC`;
-};
-
-function sigDecimalRound(val, num, min) {
-	num = num || 2;
-	const pieces = val.split('.');
-
-	if (pieces.length < 2)
-		return val;
-
-	const w = new Decimal(pieces[0]),
-		d = new Decimal(`0.${pieces[1]}`).toSignificantDigits(num);
-
-	let str = w.plus(d).toDecimalPlaces(6).toFixed();
-
-	str = str.split('.');
-
-	if (str.length === 1 && min)
-		str.push(''.padEnd(min, '0'));
-	else if (str.length === 2 && min)
-		str[1] = str[1].padEnd(min, '0');
-
-	return str.join('.');
-};
-
-export function formatSCToUSDString(val) {
-	const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 20 }),
-		sigs = Math.pow(1000, 4);
-
-	if (val.isEqualTo(0))
-		return formatter.format(0);
-
-	const usd = val.dividedBy(1e12).dividedBy(sigs).times(Store.state.coinPrice['usd']).toNumber(),
-		formatted = formatter.format(usd);
-
-	return `$${sigDecimalRound(formatted.substr(1), 2, 2)}`;
-};
-
-export function formatStorageToUSDString(val) {
-	return formatSCToUSDString(val.times(1e12).times(4320));
-}
-
-export function formatStoragePriceString(val) {
-	return formatSiacoinString(val.times(1e12).times(4320));
-};
-
 export function compareVersions(ver1, ver2) {
 	const v1 = ver1.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0].split('.'),
 		v2 = ver2.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0].split('.'),
@@ -229,36 +98,7 @@ export function debounce(fn, delay) {
 	};
 }
 
-export function formatSeconds(seconds) {
-	const denoms = [31536000, 2628000, 86400, 3600, 60, 1],
-		len = denoms.length;
-
-	let time = seconds, str = [];
-
-	for (let i = 0; i < len; i++) {
-		const d = denoms[i];
-
-		if (time < d) {
-			str.push('00');
-			continue;
-		}
-
-		const amt = Math.floor(time / d);
-
-		time = time % d;
-
-		str.push(amt < 10 ? `0${amt}` : amt.toString());
-	}
-
-	while (str[0] === '00' && str.length > 3)
-		str.shift();
-
-	return str.join(':');
-}
-
 export function blobToDataURI(blob) {
-	console.log(blob);
-
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 

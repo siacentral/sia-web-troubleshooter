@@ -43,13 +43,11 @@
 				<div class="host-settings" v-if="loaded && step >= 3">
 					<display-panel class="setting" v-for="setting in settings" :key="setting.label" :icon="setting.icon">
 						<div class="setting-title">{{ setting.title }}</div>
-						<div class="setting-value">{{ setting.value }}</div>
-						<div class="setting-avg" v-if="setting.average">Average: {{ setting.average }}</div>
+						<div class="setting-value" v-html="setting.value"></div>
+						<div class="setting-avg" v-if="setting.average" v-html="`Average: ${setting.average}`"></div>
 					</display-panel>
 				</div>
-				<div>
-					<a href="https://sia.tech" class="built-with"><img src="@/assets/built-with-sia.svg" /></a>
-				</div>
+				<logos />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
 		</transition>
@@ -59,15 +57,18 @@
 <script>
 import DisplayPanel from '@/components/DisplayPanel';
 import Loader from '@/components/Loader';
+import Logos from '@/components/Logos';
 
 import { BigNumber } from 'bignumber.js';
+import { mapState } from 'vuex';
 import { getAverageSettings, getConnectability } from '@/utils/api';
-import { numberToString, formatByteString, formatSiacoinString, formatStoragePriceString, formatShortDateString } from '@/utils/index';
+import { numberToString, formatBlockTimeString, formatByteString, formatPriceString, formatDataPriceString, formatMonthlyPriceString, formatShortDateString } from '@/utils/format';
 
 export default {
 	components: {
 		DisplayPanel,
-		Loader
+		Loader,
+		Logos
 	},
 	props: {
 		address: String
@@ -183,6 +184,7 @@ export default {
 		};
 	},
 	computed: {
+		...mapState(['currency', 'exchangeRate']),
 		connectionExtras() {
 			let extras = [{
 				key: 'Net Address',
@@ -299,24 +301,40 @@ export default {
 			});
 		},
 		formatValue(val, format) {
+			let formatted;
+
 			format = format || '';
 
 			switch (format.toLowerCase()) {
 			case 'storage':
 				val = new BigNumber(val);
-				return formatStoragePriceString(val, 2);
+				formatted = formatMonthlyPriceString(val, 2, 'binary');
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'siacoin':
 				val = new BigNumber(val);
-				return formatSiacoinString(val, 2);
+				formatted = formatPriceString(val, 2);
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'bandwidth':
 				val = new BigNumber(val);
-				return formatSiacoinString(val.times(1e12), 2);
+				formatted = formatDataPriceString(val, 2, 'binary');
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'bytes':
 				val = new BigNumber(val);
-				return formatByteString(val, 2);
+				formatted = formatByteString(val, 'binary', 2);
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'number':
 				val = new BigNumber(val);
-				return numberToString(val, 1000, ['', 'K', 'M', 'B'], 0);
+				formatted = numberToString(val, 1000, ['', 'K', 'M', 'B'], 0);
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+			case 'blocks':
+				formatted = formatBlockTimeString(val);
+
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'boolean':
 				return val ? 'Yes' : 'No';
 			default:
@@ -367,13 +385,17 @@ ul {
 
 .host-settings {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: minmax(0, 1fr);
 	grid-gap: 15px;
+
+	@media screen and (min-width: 500px) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 .step-title {
 	font-size: 1.2rem;
-	color: rgba(0, 0, 0, 0.4);
+	color: rgba(255, 255, 255, 0.4);
 	margin-bottom: 15px;
 }
 
@@ -397,7 +419,7 @@ ul {
 
 .setting-avg {
 	font-size: 0.8rem;
-	color: rgba(0, 0, 0, 0.54);
+	color: rgba(255, 255, 255, 0.54);
 	margin-top: 5px;
 }
 

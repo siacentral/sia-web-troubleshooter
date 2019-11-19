@@ -5,7 +5,16 @@ process.env.VUE_APP_API_WEBSOCKET_URL = 'wss://api.siacentral.com/api/v1';
 
 module.exports = {
 	chainWebpack: config => {
-		const types = ['vue-modules', 'vue', 'normal-modules', 'normal'];
+		const svgRule = config.module.rule('svg'),
+			types = ['vue-modules', 'vue', 'normal-modules', 'normal'];
+
+		svgRule.uses.clear();
+		svgRule
+			.use('vue-svg-loader')
+			.loader('vue-svg-loader')
+			.options({
+				svgo: false
+			});
 
 		types.forEach(type => addStyleResource(config.module.rule('stylus').oneOf(type)));
 	},

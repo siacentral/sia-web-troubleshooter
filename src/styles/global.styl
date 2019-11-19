@@ -10,8 +10,8 @@ html, body {
 	margin: 0;
 	padding: 0;
 	font-size: 16px;
-	color: rgba(0, 0, 0, 0.84);
-	background-color: #f5f5f5;
+	color: rgba(255, 255, 255, 0.84);
+	background-color: bg;
 	font-family: sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -27,8 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 	display: block;
 	width: 100%;
 	padding: 30px;
-	background: #fff;
-	color: rgba(0, 0, 0, 0.87);
+	background: bg-accent;
 	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
 }
@@ -72,7 +71,7 @@ h1, h2, h3, h4, h5, h6 {
 		background: transparent;
 		border: none;
 		border-bottom: 1px solid light-gray;
-		color: rgba(0, 0, 0, 0.84);
+		color: rgba(255, 255, 255, 0.84);
 		outline: none;
 	}
 
@@ -256,9 +255,4 @@ h1, h2, h3, h4, h5, h6 {
 	}
 }
 
-a.built-with {
-	display: block;
-	width: 100px;
-	padding: 20px 15px;
-	margin: auto;
-}
+@require "typeography.styl";

@@ -17,7 +17,7 @@ Vue.config.productionTip = false;
 async function loadPricing() {
 	const resp = await getCoinPrice();
 
-	store.dispatch('setCoinPrice', resp.market_data.current_price);
+	store.dispatch('setExchangeRate', resp.market_data.current_price);
 }
 
 loadPricing();

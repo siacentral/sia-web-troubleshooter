@@ -39,7 +39,7 @@ export default {
 
 .step-title {
 	font-size: 1.2rem;
-	color: rgba(0, 0, 0, 0.4);
+	color: rgba(255, 255, 255, 0.4);
 	margin-bottom: 15px;
 }
 
@@ -51,12 +51,12 @@ export default {
 	padding: 25px 15px 15px;
 	grid-template-columns: auto minmax(0, 1fr);
 	grid-gap: 15px;
-	background: light-gray;
+	background: lighten(bg-accent, 5%);
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
 	box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.1);
 	font-size: 0.9rem;
-	color: rgba(0, 0, 0, 0.54);
+	color: rgba(255, 255, 255, 0.75);
 }
 
 .extra-value {

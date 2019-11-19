@@ -32,7 +32,7 @@ export default {
 	bottom: 0;
 	left: 0;
 	right: 0;
-	background: #f5f5f5;
+	background: bg;
 	z-index: 999;
 	grid-template-rows: auto auto;
 	align-content: center;

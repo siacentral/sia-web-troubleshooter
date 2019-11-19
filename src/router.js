@@ -17,11 +17,6 @@ export default new Router({
 			name: 'check results',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: true
-		},
-		{
-			path: '/contracts',
-			name: 'check contracts',
-			component: () => import(/* webpackChunkName: "contracts-check" */ `@/views/CheckContracts.vue`)
 		}
 	]
 });
