@@ -3,17 +3,21 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
 	state: {
 		exchangeRate: null,
-		currency: 'sc'
+		currency: localStorage.getItem('currency') || 'sc',
+		dataUnit: localStorage.getItem('unit') || 'binary'
 	},
 	mutations: {
 		setExchangeRate(state, price) {
-			state.coinPrice = price;
+			state.exchangeRate = price;
 		},
 		setCurrency(state, currency) {
 			state.currency = currency;
+		},
+		setDataUnit(state, dataUnit) {
+			state.dataUnit = dataUnit;
 		}
 	},
 	actions: {
@@ -22,6 +26,13 @@ export default new Vuex.Store({
 		},
 		setCurrency(context, currency) {
 			context.commit('setCurrency', currency);
+			localStorage.setItem('currency', currency);
+		},
+		setDataUnit(context, dataUnit) {
+			context.commit('setDataUnit', dataUnit);
+			localStorage.setItem('unit', dataUnit);
 		}
 	}
 });
+
+export default store;

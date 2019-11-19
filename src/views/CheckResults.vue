@@ -41,7 +41,37 @@
 				</display-panel>
 				<div class="step-title">Current Configuration</div>
 				<div class="host-settings" v-if="loaded && step >= 3">
-					<display-panel class="setting" v-for="setting in settings" :key="setting.label" :icon="setting.icon">
+					<div class="control">
+						<label>Display Currency</label>
+						<select v-model="newCurrency">
+							<option value="sc">Siacoin</option>
+							<optgroup label="Fiat">
+								<option value="usd">USD</option>
+								<option value="jpy">JPY</option>
+								<option value="eur">EUR</option>
+								<option value="gbp">GBP</option>
+								<option value="aus">AUS</option>
+								<option value="cad">CAD</option>
+								<option value="rub">RUB</option>
+								<option value="cny">CNY</option>
+							</optgroup>
+							<optgroup label="Crypto">
+								<option value="btc">BTC</option>
+								<option value="bch">BCH</option>
+								<option value="eth">ETH</option>
+								<option value="xrp">XRP</option>
+								<option value="ltc">LTC</option>
+							</optgroup>
+						</select>
+					</div>
+					<div class="control">
+						<label>Data Unit</label>
+						<select v-model="newUnit">
+							<option value="binary">Binary (1024 GiB = 1 TiB)</option>
+							<option value="decimal">Decimal (1000 GB = 1 TB)</option>
+						</select>
+					</div>
+					<display-panel class="setting" v-for="setting in formattedSettings" :key="setting.label" :icon="setting.icon">
 						<div class="setting-title">{{ setting.title }}</div>
 						<div class="setting-value" v-html="setting.value"></div>
 						<div class="setting-avg" v-if="setting.average" v-html="`Average: ${setting.average}`"></div>
@@ -60,8 +90,8 @@ import Loader from '@/components/Loader';
 import Logos from '@/components/Logos';
 
 import { BigNumber } from 'bignumber.js';
-import { mapState } from 'vuex';
-import { getAverageSettings, getConnectability } from '@/utils/api';
+import { mapState, mapActions } from 'vuex';
+import { getCoinPrice, getAverageSettings, getConnectability } from '@/utils/api';
 import { numberToString, formatBlockTimeString, formatByteString, formatPriceString, formatDataPriceString, formatMonthlyPriceString, formatShortDateString } from '@/utils/format';
 
 export default {
@@ -76,6 +106,8 @@ export default {
 	data() {
 		return {
 			loaded: false,
+			newCurrency: '',
+			newUnit: '',
 			settings: [
 				{
 					key: 'version',
@@ -87,6 +119,12 @@ export default {
 					title: 'Accepting Contracts',
 					icon: 'file-check',
 					format: 'boolean'
+				},
+				{
+					key: 'contract_price',
+					title: 'Contract Price',
+					icon: 'file-contract',
+					format: 'siacoin'
 				},
 				{
 					key: 'storage_price',
@@ -116,12 +154,6 @@ export default {
 					key: 'sector_access_price',
 					title: 'Sector Access Price',
 					icon: 'hdd',
-					format: 'siacoin'
-				},
-				{
-					key: 'contract_price',
-					title: 'Contract Price',
-					icon: 'file-contract',
 					format: 'siacoin'
 				},
 				{
@@ -173,6 +205,8 @@ export default {
 					format: 'bytes'
 				}
 			],
+			hostSettings: {},
+			averageSettings: {},
 			step: 0,
 			resolvedIP: null,
 			latency: null,
@@ -184,7 +218,7 @@ export default {
 		};
 	},
 	computed: {
-		...mapState(['currency', 'exchangeRate']),
+		...mapState(['currency', 'exchangeRate', 'dataUnit']),
 		connectionExtras() {
 			let extras = [{
 				key: 'Net Address',
@@ -248,16 +282,32 @@ export default {
 			}
 
 			return extras;
+		},
+		formattedSettings() {
+			return this.settings.reduce((settings, val) => {
+				try {
+					settings.push({
+						...val,
+						value: this.formatValue(this.hostSettings[val.key], val.format),
+						average: this.avgSettings[val.key] ? this.formatValue(this.avgSettings[val.key], val.format) : null
+					});
+				} catch (ex) { console.log(ex); }
+
+				return settings;
+			}, []);
 		}
 	},
 	mounted() {
+		this.newCurrency = this.currency;
+		this.newUnit = this.dataUnit;
+
 		this.checkHost();
 	},
 	methods: {
-		async checkHost() {
+		...mapActions(['setCurrency', 'setDataUnit', 'setExchangeRate']),
+		async checkConnection() {
 			try {
-				const resp = await getConnectability(this.address),
-					avgResp = await getAverageSettings();
+				const resp = await getConnectability(this.address);
 
 				if (resp.connected)
 					this.step++;
@@ -273,57 +323,78 @@ export default {
 				if (resp.message !== 'success')
 					this.error = resp.message;
 
-				if (avgResp.type !== 'success') {
-					console.log(avgResp.message);
-					return;
-				}
-
-				this.buildSettings(resp.external_settings, avgResp.settings);
-
+				this.hostSettings = resp.external_settings;
 				this.latency = !resp.latency || resp.latency <= 0 ? null : resp.latency;
 				this.resolvedIP = resp.resolved_ip && resp.resolved_ip.length > 0 ? resp.resolved_ip : [];
 				this.reasons = resp.reasons || [];
 				this.resolutions = resp.resolutions || [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
+			} catch (ex) {
+				console.error(ex);
+			}
+		},
+		async loadAverageSettings() {
+			try {
+				const resp = await getAverageSettings();
+
+				if (resp.type !== 'success') {
+					console.log(resp.message);
+					return;
+				}
+
+				this.avgSettings = resp.settings;
+			} catch (ex) {
+				console.error(ex);
+			}
+		},
+		async loadPricing() {
+			try {
+				const pricing = await getCoinPrice();
+
+				this.setExchangeRate(pricing);
+			} catch (ex) {
+				console.error(ex);
+			}
+		},
+		async checkHost() {
+			try {
+				await Promise.all([
+					this.checkConnection(),
+					this.loadAverageSettings(),
+					this.loadPricing()
+				]);
+
 				this.loaded = true;
 			} catch (ex) {
 				console.log(ex);
 			}
-		},
-		buildSettings(settings, avgSettings) {
-			this.settings = this.settings.map(s => {
-				try {
-					s.value = this.formatValue(settings[s.key], s.format);
-					s.average = avgSettings[s.key] ? this.formatValue(avgSettings[s.key], s.format) : null;
-				} catch (ex) { console.log(ex); }
-
-				return s;
-			});
 		},
 		formatValue(val, format) {
 			let formatted;
 
 			format = format || '';
 
+			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB';
+
 			switch (format.toLowerCase()) {
 			case 'storage':
 				val = new BigNumber(val);
-				formatted = formatMonthlyPriceString(val, 2, 'binary');
+				formatted = formatMonthlyPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label}/${dataSuffix}/Mo</span>`;
 			case 'siacoin':
 				val = new BigNumber(val);
-				formatted = formatPriceString(val, 2);
+				formatted = formatPriceString(val, 2, this.currency, this.exchangeRate[this.currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'bandwidth':
 				val = new BigNumber(val);
-				formatted = formatDataPriceString(val, 2, 'binary');
+				formatted = formatDataPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label}/${dataSuffix}</span>`;
 			case 'bytes':
 				val = new BigNumber(val);
-				formatted = formatByteString(val, 'binary', 2);
+				formatted = formatByteString(val, this.dataUnit, 2);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'number':
@@ -341,6 +412,14 @@ export default {
 				return val.toString();
 			}
 		}
+	},
+	watch: {
+		newUnit(val) {
+			this.setDataUnit(val);
+		},
+		newCurrency(val) {
+			this.setCurrency(val);
+		}
 	}
 };
 </script>
@@ -350,7 +429,7 @@ export default {
 	max-width: 1000px;
 	margin: auto;
 
-	@media screen and (min-width: 500px) {
+	@media screen and (min-width: 767px) {
 		width: 80vw;
 	}
 }
@@ -388,7 +467,7 @@ ul {
 	grid-template-columns: minmax(0, 1fr);
 	grid-gap: 15px;
 
-	@media screen and (min-width: 500px) {
+	@media screen and (min-width: 767px) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }

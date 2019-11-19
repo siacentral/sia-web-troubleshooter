@@ -58,6 +58,11 @@ export async function getBlock(height) {
 	return resp;
 }
 
-export function getCoinPrice() {
-	return sendJSONRequest('https://api.coingecko.com/api/v3/coins/siacoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false', 'GET', null, true);
+export async function getCoinPrice() {
+	const resp = await sendJSONRequest('https://api.siacentral.com/api/v1/explorer/market/exchange-rate', 'GET', null, true);
+
+	if (resp.type !== 'success')
+		throw new Error(resp.message);
+
+	return resp.price;
 }
