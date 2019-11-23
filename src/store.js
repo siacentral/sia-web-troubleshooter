@@ -3,11 +3,18 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
+const params = new URLSearchParams(window.location.search.substring(1)),
+	defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'sc',
+	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal';
+
+localStorage.setItem('currency', defaultCurrency);
+localStorage.setItem('unit', defaultDataUnit);
+
 const store = new Vuex.Store({
 	state: {
 		exchangeRate: null,
-		currency: localStorage.getItem('currency') || 'sc',
-		dataUnit: localStorage.getItem('unit') || 'binary'
+		currency: defaultCurrency,
+		dataUnit: defaultDataUnit
 	},
 	mutations: {
 		setExchangeRate(state, price) {
