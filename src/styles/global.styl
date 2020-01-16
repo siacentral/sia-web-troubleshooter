@@ -10,6 +10,7 @@ html, body {
 	margin: 0;
 	padding: 0;
 	font-size: 16px;
+	font-weight: 300;
 	color: rgba(255, 255, 255, 0.84);
 	background-color: bg;
 	font-family: sans-serif;
@@ -58,8 +59,12 @@ h1, h2, h3, h4, h5, h6 {
 		color: primary;
 		margin: auto;
 
-		&.icon-error {
-			color: #f14a4a;
+		&.icon-severe {
+			color: negative-accent;
+		}
+
+		&.icon-warning {
+			color: warning-accent;
 		}
 
 		svg.svg-inline--fa {

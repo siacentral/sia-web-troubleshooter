@@ -1,7 +1,6 @@
 const path = require('path');
 
-process.env.VUE_APP_API_BASE_URL = 'https://api.siacentral.com/api/v1';
-process.env.VUE_APP_API_WEBSOCKET_URL = 'wss://api.siacentral.com/api/v1';
+process.env.VUE_APP_API_BASE_URL = 'https://api.siacentral.com/v2';
 
 module.exports = {
 	chainWebpack: config => {

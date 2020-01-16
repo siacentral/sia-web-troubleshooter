@@ -12,39 +12,29 @@ async function sendJSONRequest(url, method, data, excludeToken) {
 		}),
 		resp = await r.json();
 
-	return resp;
+	return { statusCode: r.status >= 200 && r.status < 300 ? 200 : r.status, body: resp };
 }
 
 export async function getAverageSettings() {
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/explorer/hosts/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/hosts/settings/average`, 'GET', null, true);
 
-	if (resp.type !== 'success')
-		return resp;
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
 
-	resp.settings = parseSettings(resp.settings);
+	resp.body.settings = parseSettings(resp.body.settings);
 
-	return resp;
+	return resp.body.settings;
 }
 
 export async function getConnectability(netaddress) {
-	netaddress = encodeURIComponent(netaddress);
+	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
 
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/explorer/hosts/checkconnection?netaddress=${netaddress}`, 'GET', null, true);
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
 
-	if (resp.type !== 'success')
-		return resp;
+	resp.body.report.external_settings = parseSettings(resp.body.report.external_settings);
 
-	resp.external_settings = parseSettings(resp.external_settings);
-
-	return resp;
-}
-
-export async function getContracts(contracts) {
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/explorer/storage-obligations`, 'POST', {
-		contract_ids: contracts
-	}, true);
-
-	return resp;
+	return resp.body.report;
 }
 
 export async function getBlock(height) {
@@ -55,14 +45,17 @@ export async function getBlock(height) {
 
 	const resp = await sendJSONRequest(url, 'GET', null, true);
 
-	return resp;
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body;
 }
 
 export async function getCoinPrice() {
-	const resp = await sendJSONRequest('https://api.siacentral.com/api/v1/explorer/market/exchange-rate', 'GET', null, true);
+	const resp = await sendJSONRequest('https://api.siacentral.com/v2/market/exchange-rate', 'GET', null, true);
 
-	if (resp.type !== 'success')
-		throw new Error(resp.message);
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
 
-	return resp.price;
+	return resp.body.siacoin;
 }

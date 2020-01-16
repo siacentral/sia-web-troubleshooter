@@ -72,14 +72,10 @@ export function formatBlockTimeString(blocks) {
 }
 
 export function formatDate(date) {
-	return date.toLocaleString([], {
-		dateStyle: 'short',
-		timeStyle: 'short',
-		year: '2-digit',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit'
+	return date.toLocaleDateString([], {
+		day: 'numeric',
+		month: 'short',
+		year: 'numeric'
 	});
 }
 
@@ -141,14 +137,17 @@ export function formatNumber(val, dec) {
 	if (!dec)
 		dec = 0;
 
+	val = new BigNumber(val);
+
 	return new Intl.NumberFormat([], {
 		type: 'decimal',
 		minimumFractionDigits: dec
-	}).format(roundNumber(val.dividedBy(1e24), dec));
+	}).format(roundNumber(val, dec));
 }
 
 function roundNumber(val, dec) {
-	const str = val.toString(10),
+	const str = val.abs().toString(10),
+		neg = val.lt(0),
 		parts = str.split('.');
 
 	if (parts.length === 1)
@@ -159,17 +158,22 @@ function roundNumber(val, dec) {
 	if (decimals.isNaN() || !decimals.isFinite())
 		decimals = new BigNumber(0);
 
-	return new BigNumber(parts[0]).plus(decimals.sd(dec)).toNumber();
+	let num = new BigNumber(parts[0]).plus(decimals.sd(dec)).toNumber();
+
+	if (neg)
+		num *= -1;
+
+	return num;
 }
 
-export function formatSiacoinString(val, dec) {
+function formatSiacoinString(val, dec) {
 	if (!isFinite(dec))
 		dec = 2;
 
 	if (!val || val.isEqualTo(0)) {
 		return {
 			value: '0',
-			label: 'SC'
+			label: 'sc'
 		};
 	}
 
@@ -179,17 +183,17 @@ export function formatSiacoinString(val, dec) {
 			minimumFractionDigits: dec,
 			maximumFractionDigits: 20
 		}).format(roundNumber(val.dividedBy(1e24), dec)),
-		label: 'SC'
+		label: 'sc'
 	};
 };
 
-export function formatCryptoString(val, dec, currency, rate) {
+function formatCryptoString(val, dec, currency, rate) {
 	dec = dec || 4;
 
 	if (val.isEqualTo(0) || !rate) {
 		return {
 			value: '0',
-			label: currency.toUpperCase()
+			label: currency.toLowerCase()
 		};
 	}
 
@@ -199,23 +203,23 @@ export function formatCryptoString(val, dec, currency, rate) {
 			minimumFractionDigits: dec,
 			maximumFractionDigits: 20
 		}).format(roundNumber(val.dividedBy(1e24).times(rate), dec)),
-		label: 'SC'
+		label: currency.toLowerCase()
 	};
 }
 
-export function formatCurrencyString(val, currency, rate) {
+function formatCurrencyString(val, currency, rate) {
 	const formatter = new Intl.NumberFormat([], { style: 'currency', currency: currency || 'usd', maximumFractionDigits: 20 });
 
 	if (val.isEqualTo(0) || !rate) {
 		return {
 			value: formatter.format(0),
-			label: currency.toUpperCase()
+			label: currency.toLowerCase()
 		};
 	}
 
 	return {
 		value: formatter.format(roundNumber(val.dividedBy(1e24).times(rate), 2)),
-		label: currency.toUpperCase()
+		label: currency.toLowerCase()
 	};
 };
 
@@ -265,6 +269,24 @@ export function formatMonthlyPriceString(val, dec, unit, currency, rate) {
 		return formatCurrencyString(val.times(byteFactor).times(4320), currency, rate);
 
 	return formatSiacoinString(val.times(byteFactor).times(4320), dec, currency, rate);
+};
+
+export function formatSiafundString(val) {
+	if (!val || val.isEqualTo(0)) {
+		return {
+			value: '0',
+			label: 'sf'
+		};
+	}
+
+	return {
+		value: new Intl.NumberFormat([], {
+			type: 'decimal',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0
+		}).format(val),
+		label: 'sf'
+	};
 };
 
 export function formatPriceString(val, dec, currency, rate) {

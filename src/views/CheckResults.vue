@@ -2,81 +2,131 @@
 	<div class="page">
 		<transition name="fade" mode="out-in" appear>
 			<div class="page-content" v-if="loaded">
-				<display-panel class="connection-step" :extras="connectionExtras" v-if="loaded && step >= 0" title="Initial Connection Check" icon="wifi" :error="step === 0">
-					<template v-if="step > 0">
-						It looks like something is listening at that net address
+				<h3 class="step-title">Results ({{ passed }}/{{ total }} Tests Passed)</h3>
+				<display-panel class="connection-step" icon="wifi" :severity="resolved ? 'success' : 'severe'">
+					<template v-if="resolved">
+						Net address resolved
 					</template>
 					<template v-else>
-						We can't connect to your host at that net address
+						Your net address could not be resolved
+					</template>
+					<template slot="extras">
+						<div class="extras-grid">
+							<div class="extra-title">Net Address</div>
+							<div class="extra-value">{{ netaddress }}</div>
+							<template v-for="ip in resolvedIP">
+								<div class="extra-title" :key="`title-${ip}`">Resolved IP</div>
+								<div class="extra-value" :key="`ip-${ip}`">{{ ip }}</div>
+							</template>
+						</div>
 					</template>
 				</display-panel>
-				<display-panel class="connection-step" v-if="loaded && step >= 1" title="Host Database Check" icon="database" :error="step === 1" :extras="hostDBExtras">
-					<template v-if="step > 1">
-						You appear to be in our host database
+				<display-panel class="connection-step" icon="wifi" :severity="connected ? 'success' : 'severe'">
+					<template v-if="connected">
+						Connected to host
 					</template>
 					<template v-else>
-						We couldn't find your net address in our host db
+						Cannot connect to host
+					</template>
+					<template slot="extras" v-if="connected">
+						<div class="extras-grid">
+							<div class="extra-title">Latency</div>
+							<div class="extra-value">{{ latency }}ms</div>
+						</div>
 					</template>
 				</display-panel>
-				<display-panel class="connection-step" v-if="loaded && step >= 2" title="Host Connection Check" icon="cogs" :error="step === 2" :extras="scanExtras">
-					<template v-if="step > 2">
-						We were able to get the latest configuration from your host!
+				<display-panel class="connection-step" icon="database" :severity="announced ? 'success' : 'severe'">
+					<template v-if="announced">
+						Your announcement is in the host database
 					</template>
 					<template v-else>
-						We couldn't retrieve settings from your host
+						The net address was not found in the host database
+					</template>
+					<template slot="extras">
+						<div class="extras-grid" v-if="announced">
+							<div class="extra-title">Public Key</div>
+							<div class="extra-value">{{ publicKey }}</div>
+							<template v-if="lastAnnouncement">
+								<div class="extra-title">Last Announcement</div>
+								<div class="extra-value">{{ lastAnnouncement }}</div>
+							</template>
+							<template v-if="firstAnnouncement">
+								<div class="extra-title">First Announcement</div>
+								<div class="extra-value">{{ firstAnnouncement }}</div>
+							</template>
+						</div>
 					</template>
 				</display-panel>
-				<display-panel class="connection-step" v-if="loaded && error" title="Error Message" icon="exclamation-triangle" :error="true">
-					{{ error }}
+				<display-panel class="connection-step" icon="cogs" :severity="scanned ? 'success' : 'severe'">
+					<template v-if="scanned">
+						Latest settings retrieved from host
+					</template>
+					<template v-else>
+						Settings could not be retrieved from host
+					</template>
 				</display-panel>
-				<display-panel class="connection-step" v-if="loaded && reasons && reasons.length > 0" title="Possible Causes" icon="search" :error="true">
-					<ul>
-						<li v-for="item in reasons" :key="item">{{item}}</li>
-					</ul>
-				</display-panel>
-				<display-panel class="connection-step" v-if="loaded && resolutions && resolutions.length > 0" title="Things to Try" icon="wrench" :error="true">
-					<ul>
-						<li v-for="item in resolutions" :key="item">{{item}}</li>
-					</ul>
-				</display-panel>
-				<div class="step-title">Current Configuration</div>
-				<div class="host-settings" v-if="loaded && step >= 3">
-					<div class="control">
-						<label>Display Currency</label>
-						<select v-model="newCurrency">
-							<option value="sc">Siacoin</option>
-							<optgroup label="Fiat">
-								<option value="usd">USD</option>
-								<option value="jpy">JPY</option>
-								<option value="eur">EUR</option>
-								<option value="gbp">GBP</option>
-								<option value="aus">AUS</option>
-								<option value="cad">CAD</option>
-								<option value="rub">RUB</option>
-								<option value="cny">CNY</option>
-							</optgroup>
-							<optgroup label="Crypto">
-								<option value="btc">BTC</option>
-								<option value="bch">BCH</option>
-								<option value="eth">ETH</option>
-								<option value="xrp">XRP</option>
-								<option value="ltc">LTC</option>
-							</optgroup>
-						</select>
-					</div>
-					<div class="control">
-						<label>Data Unit</label>
-						<select v-model="newUnit">
-							<option value="binary">Binary (1024 GiB = 1 TiB)</option>
-							<option value="decimal">Decimal (1000 GB = 1 TB)</option>
-						</select>
-					</div>
-					<display-panel class="setting" v-for="setting in formattedSettings" :key="setting.label" :icon="setting.icon">
-						<div class="setting-title">{{ setting.title }}</div>
-						<div class="setting-value" v-html="setting.value"></div>
-						<div class="setting-avg" v-if="setting.average" v-html="`Average: ${setting.average}`"></div>
+				<template v-if="errors.length !== 0">
+					<h3 class="step-title">Errors</h3>
+					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
+						{{ error.message }}
+						<template slot="extras">
+							<div class="extras-grid">
+								<div class="extra-title">Reasons</div>
+								<div class="extra-value">
+									<ul>
+										<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
+									</ul>
+								</div>
+								<div class="extra-title">Resolutions</div>
+								<div class="extra-value">
+									<ul>
+										<li v-for="(resolution, i) in error.resolutions" :key="i">{{ resolution }}</li>
+									</ul>
+								</div>
+							</div>
+						</template>
 					</display-panel>
-				</div>
+				</template>
+				<template v-if="scanned">
+					<div class="step-title">Current Configuration</div>
+					<div class="host-settings" v-if="scanned">
+						<div class="control">
+							<label>Display Currency</label>
+							<select v-model="newCurrency">
+								<option value="sc">Siacoin</option>
+								<optgroup label="Fiat">
+									<option value="usd">USD</option>
+									<option value="jpy">JPY</option>
+									<option value="eur">EUR</option>
+									<option value="gbp">GBP</option>
+									<option value="aus">AUS</option>
+									<option value="cad">CAD</option>
+									<option value="rub">RUB</option>
+									<option value="cny">CNY</option>
+								</optgroup>
+								<optgroup label="Crypto">
+									<option value="btc">BTC</option>
+									<option value="bch">BCH</option>
+									<option value="eth">ETH</option>
+									<option value="xrp">XRP</option>
+									<option value="ltc">LTC</option>
+								</optgroup>
+							</select>
+						</div>
+						<div class="control">
+							<label>Data Unit</label>
+							<select v-model="newUnit">
+								<option value="binary">Binary (1024 GiB = 1 TiB)</option>
+								<option value="decimal">Decimal (1000 GB = 1 TB)</option>
+							</select>
+						</div>
+						<display-panel class="setting" v-for="setting in formattedSettings" :key="setting.label" :icon="setting.icon">
+							<div class="setting-title">{{ setting.title }}</div>
+							<div class="setting-value" v-html="setting.value"></div>
+							<div class="setting-avg" v-if="setting.average" v-html="`Average: ${setting.average}`"></div>
+						</display-panel>
+					</div>
+				</template>
 				<logos />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
@@ -92,7 +142,7 @@ import Logos from '@/components/Logos';
 import { BigNumber } from 'bignumber.js';
 import { mapState, mapActions } from 'vuex';
 import { getCoinPrice, getAverageSettings, getConnectability } from '@/utils/api';
-import { numberToString, formatBlockTimeString, formatByteString, formatPriceString, formatDataPriceString, formatMonthlyPriceString, formatShortDateString } from '@/utils/format';
+import { numberToString, formatBlockTimeString, formatByteString, formatPriceString, formatDataPriceString, formatMonthlyPriceString, formatDate } from '@/utils/format';
 
 export default {
 	components: {
@@ -207,81 +257,38 @@ export default {
 			],
 			hostSettings: {},
 			averageSettings: {},
-			step: 0,
-			resolvedIP: null,
+			connected: false,
+			scanned: false,
+			resolved: false,
+			announced: false,
+			resolvedIP: [],
+			netaddress: '',
 			latency: null,
 			publicKey: null,
-			reasons: [],
-			resolutions: [],
+			passed: 0,
+			total: 4,
+			errors: [],
 			announcements: [],
 			error: null
 		};
 	},
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
-		connectionExtras() {
-			let extras = [{
-				key: 'Net Address',
-				value: this.address
-			}];
+		firstAnnouncement() {
+			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
+				return null;
 
-			if (this.resolvedIP && Array.isArray(this.resolvedIP)) {
-				this.resolvedIP.forEach((ip, i) => {
-					extras.push({
-						key: `Resolved IP ${i > 0 ? i + 1 : ''}`.trim(),
-						value: ip
-					});
-				});
-			}
+			const announcement = this.announcements[this.announcements.length - 1];
 
-			return extras;
+			return `${announcement.net_address} (${formatDate(new Date(announcement.timestamp))})`;
 		},
-		hostDBExtras() {
-			let extras = [];
+		lastAnnouncement() {
+			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
+				return null;
 
-			if (this.publicKey) {
-				extras.push({
-					key: 'Public Key',
-					value: this.publicKey
-				});
-			}
+			const announcement = this.announcements[0];
 
-			if (this.announcements && this.announcements.length > 1) {
-				const announcement = this.announcements[0];
-				extras.push({
-					key: 'First Announcement',
-					value: `${announcement.net_address} (${formatShortDateString(new Date(announcement.timestamp))})`
-				});
-			}
-
-			if (this.announcements && this.announcements.length > 0) {
-				const announcement = this.announcements[this.announcements.length - 1];
-				extras.push({
-					key: 'Last Announcement',
-					value: `${announcement.net_address} (${formatShortDateString(new Date(announcement.timestamp))})`
-				});
-			}
-
-			if (this.dbEntry && this.dbEntry.firstseen) {
-				extras.push({
-					key: 'First Block Seen',
-					value: this.dbEntry.firstseen
-				});
-			}
-
-			return extras;
-		},
-		scanExtras() {
-			let extras = [];
-
-			if (this.latency) {
-				extras.push({
-					key: 'Response Time',
-					value: `${this.latency}ms`
-				});
-			}
-
-			return extras;
+			return `${announcement.net_address} (${formatDate(new Date(announcement.timestamp))})`;
 		},
 		formattedSettings() {
 			return this.settings.reduce((settings, val) => {
@@ -309,27 +316,44 @@ export default {
 			try {
 				const resp = await getConnectability(this.address);
 
-				if (resp.connected)
-					this.step++;
-
-				if (resp.exists_in_hostdb)
-					this.step++;
-
-				if (resp.settings_scanned)
-					this.step++;
-
+				this.netaddress = resp.netaddress;
+				this.resolved = resp.resolved;
+				this.connected = resp.connected;
+				this.announced = resp.announced;
+				this.scanned = resp.scanned;
 				this.publicKey = resp.public_key;
-
-				if (resp.message !== 'success')
-					this.error = resp.message;
-
 				this.hostSettings = resp.external_settings;
 				this.latency = !resp.latency || resp.latency <= 0 ? null : resp.latency;
-				this.resolvedIP = resp.resolved_ip && resp.resolved_ip.length > 0 ? resp.resolved_ip : [];
-				this.reasons = resp.reasons || [];
-				this.resolutions = resp.resolutions || [];
+				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
+				this.errors = Array.isArray(resp.errors) ? resp.errors : [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
+
+				if (this.connected)
+					this.passed++;
+
+				if (this.scanned)
+					this.passed++;
+
+				if (this.announced)
+					this.passed++;
+
+				if (this.resolved)
+					this.passed++;
+
+				this.errors.sort((a, b) => {
+					let aV = a.severity === 'severe' ? 2 : a.severity === 'warning' ? 1 : 0,
+						bV = b.severity === 'severe' ? 2 : b.severity === 'warning' ? 1 : 0;
+
+					if (aV > bV)
+						return -1;
+
+					if (aV < bV)
+						return 1;
+
+					return 0;
+				});
 			} catch (ex) {
+				this.error = ex.message;
 				console.error(ex);
 			}
 		},
@@ -337,12 +361,7 @@ export default {
 			try {
 				const resp = await getAverageSettings();
 
-				if (resp.type !== 'success') {
-					console.log(resp.message);
-					return;
-				}
-
-				this.avgSettings = resp.settings;
+				this.avgSettings = resp;
 			} catch (ex) {
 				console.error(ex);
 			}
@@ -381,31 +400,31 @@ export default {
 				val = new BigNumber(val);
 				formatted = formatMonthlyPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}/${dataSuffix}/Mo</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}/Mo</span>`;
 			case 'siacoin':
 				val = new BigNumber(val);
 				formatted = formatPriceString(val, 2, this.currency, this.exchangeRate[this.currency]);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'bandwidth':
 				val = new BigNumber(val);
 				formatted = formatDataPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}/${dataSuffix}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}</span>`;
 			case 'bytes':
 				val = new BigNumber(val);
 				formatted = formatByteString(val, this.dataUnit, 2);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'number':
 				val = new BigNumber(val);
 				formatted = numberToString(val, 1000, ['', 'K', 'M', 'B'], 0);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'blocks':
 				formatted = formatBlockTimeString(val);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'boolean':
 				return val ? 'Yes' : 'No';
 			default:
@@ -440,6 +459,8 @@ ul {
 
 	> li {
 		margin-bottom: 5px;
+		white-space: normal;
+		text-align: left;
 	}
 }
 
@@ -469,6 +490,41 @@ ul {
 
 	@media screen and (min-width: 767px) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.extras-grid {
+	.extra-title {
+		margin-bottom: 3px;
+	}
+
+	.extra-value {
+		margin-bottom: 15px;
+	}
+
+	.extra-title, .extra-value {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	@media screen and (min-width: 767px) {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, auto));
+		grid-gap: 15px;
+		justify-content: space-between;
+
+		.extra-title, .extra-value {
+			margin-bottom: 0;
+		}
+
+		.extra-value {
+			text-align: right;
+		}
 	}
 }
 
