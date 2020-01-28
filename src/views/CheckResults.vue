@@ -2,6 +2,28 @@
 	<div class="page">
 		<transition name="fade" mode="out-in" appear>
 			<div class="page-content" v-if="loaded">
+				<template v-if="errors.length !== 0">
+					<h3 class="step-title">Issues</h3>
+					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
+						{{ error.message }}
+						<template slot="extras">
+							<div class="extras-grid">
+								<div class="extra-title">Reasons</div>
+								<div class="extra-value">
+									<ul>
+										<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
+									</ul>
+								</div>
+								<div class="extra-title">Resolutions</div>
+								<div class="extra-value">
+									<ul>
+										<li v-for="(resolution, i) in error.resolutions" :key="i">{{ resolution }}</li>
+									</ul>
+								</div>
+							</div>
+						</template>
+					</display-panel>
+				</template>
 				<h3 class="step-title">Results ({{ passed }}/{{ total }} Tests Passed)</h3>
 				<display-panel class="connection-step" icon="wifi" :severity="resolved ? 'success' : 'severe'">
 					<template v-if="resolved">
@@ -64,29 +86,13 @@
 					<template v-else>
 						Settings could not be retrieved from host
 					</template>
+					<template slot="extras" v-if="scanned">
+						<div class="extras-grid">
+							<div class="extra-title">Response Time</div>
+							<div class="extra-value">{{ scanLatency }}ms</div>
+						</div>
+					</template>
 				</display-panel>
-				<template v-if="errors.length !== 0">
-					<h3 class="step-title">Errors</h3>
-					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
-						{{ error.message }}
-						<template slot="extras">
-							<div class="extras-grid">
-								<div class="extra-title">Reasons</div>
-								<div class="extra-value">
-									<ul>
-										<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
-									</ul>
-								</div>
-								<div class="extra-title">Resolutions</div>
-								<div class="extra-value">
-									<ul>
-										<li v-for="(resolution, i) in error.resolutions" :key="i">{{ resolution }}</li>
-									</ul>
-								</div>
-							</div>
-						</template>
-					</display-panel>
-				</template>
 				<template v-if="scanned">
 					<div class="step-title">Current Configuration</div>
 					<div class="host-settings" v-if="scanned">
@@ -263,7 +269,8 @@ export default {
 			announced: false,
 			resolvedIP: [],
 			netaddress: '',
-			latency: null,
+			latency: 0,
+			scanLatency: 0,
 			publicKey: null,
 			passed: 0,
 			total: 4,
@@ -323,7 +330,8 @@ export default {
 				this.scanned = resp.scanned;
 				this.publicKey = resp.public_key;
 				this.hostSettings = resp.external_settings;
-				this.latency = !resp.latency || resp.latency <= 0 ? null : resp.latency;
+				this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
+				this.scanLatency = isNaN(resp.scan_latency) || !isFinite(resp.scan_latency) ? 0 : resp.scan_latency;
 				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
 				this.errors = Array.isArray(resp.errors) ? resp.errors : [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
