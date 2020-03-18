@@ -2,6 +2,7 @@
 	<div class="page">
 		<transition name="fade" mode="out-in" appear>
 			<div class="page-content" v-if="loaded">
+				<button class="btn btn-inline btn-retry" @click="checkHost"><font-awesome :icon="['fal', 'sync']" />Retry</button>
 				<template v-if="errors.length !== 0">
 					<h3 class="step-title">Issues</h3>
 					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
@@ -335,6 +336,7 @@ export default {
 				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
 				this.errors = Array.isArray(resp.errors) ? resp.errors : [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
+				this.passed = 0;
 
 				if (this.connected)
 					this.passed++;
@@ -385,6 +387,8 @@ export default {
 		},
 		async checkHost() {
 			try {
+				this.loaded = false;
+
 				await Promise.all([
 					this.checkConnection(),
 					this.loadAverageSettings(),
@@ -458,6 +462,18 @@ export default {
 
 	@media screen and (min-width: 767px) {
 		width: 80vw;
+	}
+}
+
+.btn.btn-retry.btn-retry {
+    margin: 0 0 15px;
+    float: right;
+    padding: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.54);
+
+	svg {
+		margin-right: 8px;
 	}
 }
 
