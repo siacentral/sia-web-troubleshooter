@@ -100,7 +100,8 @@
 						<div class="control">
 							<label>Display Currency</label>
 							<select v-model="newCurrency">
-								<option value="sc">Siacoin</option>
+								<option value="scp" v-if="blockchain === 'scprime'">SCP</option>
+								<option value="sc" v-else>Siacoin</option>
 								<optgroup label="Fiat">
 									<option value="usd">USD</option>
 									<option value="jpy">JPY</option>
@@ -281,7 +282,7 @@ export default {
 		};
 	},
 	computed: {
-		...mapState(['currency', 'exchangeRate', 'dataUnit']),
+		...mapState(['currency', 'exchangeRate', 'dataUnit', 'blockchain']),
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
 				return null;

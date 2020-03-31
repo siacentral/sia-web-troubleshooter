@@ -1,4 +1,5 @@
 import { parseSettings } from './parse';
+import Store from '@/store';
 
 async function sendJSONRequest(url, method, data, excludeToken) {
 	let headers = {};
@@ -15,8 +16,20 @@ async function sendJSONRequest(url, method, data, excludeToken) {
 	return { statusCode: r.status >= 200 && r.status < 300 ? 200 : r.status, body: resp };
 }
 
+function getBaseURL() {
+	if (typeof Store.state.blockchain !== 'string')
+		return 'https://api.siacentral.com/v2';
+
+	switch (Store.state.blockchain.toLowerCase()) {
+	case 'scprime':
+		return 'https://api.siacentral.com/v2/scp';
+	default:
+		return 'https://api.siacentral.com/v2';
+	}
+}
+
 export async function getAverageSettings() {
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/hosts/settings/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`${getBaseURL()}/hosts/settings/average`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
@@ -27,7 +40,7 @@ export async function getAverageSettings() {
 }
 
 export async function getConnectability(netaddress) {
-	const resp = await sendJSONRequest(`${process.env.VUE_APP_API_BASE_URL}/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+	const resp = await sendJSONRequest(`${getBaseURL()}/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
@@ -38,7 +51,7 @@ export async function getConnectability(netaddress) {
 }
 
 export async function getBlock(height) {
-	let url = `${process.env.VUE_APP_API_BASE_URL}/explorer/block`;
+	let url = `${getBaseURL()}/explorer/block`;
 
 	if (height)
 		url += `?height=${height}`;
@@ -52,10 +65,13 @@ export async function getBlock(height) {
 }
 
 export async function getCoinPrice() {
-	const resp = await sendJSONRequest('https://api.siacentral.com/v2/market/exchange-rate', 'GET', null, true);
+	const resp = await sendJSONRequest(`${getBaseURL()}/market/exchange-rate`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
+
+	if (Store.state.blockchain === 'scprime')
+		return resp.body.scp;
 
 	return resp.body.siacoin;
 }

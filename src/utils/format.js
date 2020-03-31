@@ -166,14 +166,16 @@ function roundNumber(val, dec) {
 	return num;
 }
 
-function formatSiacoinString(val, dec) {
+function formatSiacoinString(val, dec, unit) {
+	unit = unit || 'sc';
+
 	if (!isFinite(dec))
 		dec = 2;
 
 	if (!val || val.isEqualTo(0)) {
 		return {
 			value: '0',
-			label: 'sc'
+			label: unit
 		};
 	}
 
@@ -183,7 +185,7 @@ function formatSiacoinString(val, dec) {
 			minimumFractionDigits: dec,
 			maximumFractionDigits: 20
 		}).format(roundNumber(val.dividedBy(1e24), dec)),
-		label: 'sc'
+		label: unit
 	};
 };
 
@@ -253,7 +255,7 @@ export function formatDataPriceString(val, dec, unit, currency, rate) {
 	if (supportedCurrency.indexOf(currency) >= 0 && rate)
 		return formatCurrencyString(val.times(byteFactor), currency, rate);
 
-	return formatSiacoinString(val.times(byteFactor), dec);
+	return formatSiacoinString(val.times(byteFactor), dec, currency);
 };
 
 export function formatMonthlyPriceString(val, dec, unit, currency, rate) {
@@ -268,7 +270,7 @@ export function formatMonthlyPriceString(val, dec, unit, currency, rate) {
 	if (supportedCurrency.indexOf(currency) >= 0 && rate)
 		return formatCurrencyString(val.times(byteFactor).times(4320), currency, rate);
 
-	return formatSiacoinString(val.times(byteFactor).times(4320), dec, currency, rate);
+	return formatSiacoinString(val.times(byteFactor).times(4320), dec, currency);
 };
 
 export function formatSiafundString(val) {
@@ -299,5 +301,5 @@ export function formatPriceString(val, dec, currency, rate) {
 	if (supportedCurrency.indexOf(currency) >= 0 && rate)
 		return formatCurrencyString(val, currency, rate);
 
-	return formatSiacoinString(val, dec);
+	return formatSiacoinString(val, dec, currency);
 }
