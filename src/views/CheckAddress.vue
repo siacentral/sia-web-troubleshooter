@@ -8,7 +8,7 @@
 				</div>
 				<div class="control">
 					<label>Network</label>
-					<select v-model="newNetwork" @change="onChangeNetwork">
+					<select v-model="network">
 						<option value="sia">Sia</option>
 						<option value="scprime">SCPrime</option>
 					</select>
@@ -23,32 +23,28 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
 import Logos from '@/components/Logos';
 
 export default {
 	components: {
 		Logos
 	},
-	computed: {
-		...mapState(['blockchain'])
-	},
 	data() {
 		return {
-			netAddress: '',
-			newNetwork: 'sia'
+			network: 'sia',
+			netAddress: ''
 		};
 	},
 	beforeMount() {
-		this.newNetwork = this.blockchain;
+		this.network = localStorage.getItem('blockchain') || 'sia';
 	},
 	methods: {
-		...mapActions(['setBlockchain']),
 		onSubmit() {
 			this.$router.push({
 				name: 'check results',
 				params: {
-					address: this.netAddress.toLowerCase()
+					address: this.netAddress.toLowerCase(),
+					network: this.network
 				}
 			});
 		},

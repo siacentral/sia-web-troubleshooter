@@ -4,25 +4,22 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 const params = new URLSearchParams(window.location.search.substring(1)),
-	defaultBlockchain = params.get('blockchain') || localStorage.getItem('blockchain') || 'sia',
-	defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'sc',
 	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal';
+let defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'base';
 
-localStorage.setItem('blockchain', defaultBlockchain);
+if (defaultCurrency === 'sc')
+	defaultCurrency = 'base';
+
 localStorage.setItem('currency', defaultCurrency);
 localStorage.setItem('unit', defaultDataUnit);
 
 const store = new Vuex.Store({
 	state: {
 		exchangeRate: null,
-		blockchain: defaultBlockchain,
 		currency: defaultCurrency,
 		dataUnit: defaultDataUnit
 	},
 	mutations: {
-		setBlockchain(state, chain) {
-			state.blockchain = chain;
-		},
 		setExchangeRate(state, price) {
 			state.exchangeRate = price;
 		},
@@ -34,10 +31,6 @@ const store = new Vuex.Store({
 		}
 	},
 	actions: {
-		setBlockchain({ commit }, chain) {
-			commit('setBlockchain', chain);
-			localStorage.setItem('blockchain', chain);
-		},
 		setExchangeRate(context, price) {
 			context.commit('setExchangeRate', price);
 		},

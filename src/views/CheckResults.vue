@@ -100,8 +100,8 @@
 						<div class="control">
 							<label>Display Currency</label>
 							<select v-model="newCurrency">
-								<option value="scp" v-if="blockchain === 'scprime'">SCP</option>
-								<option value="sc" v-else>Siacoin</option>
+								<option value="base" v-if="network === 'scprime'">SCPrime Coin</option>
+								<option value="base" v-else>Siacoin</option>
 								<optgroup label="Fiat">
 									<option value="usd">USD</option>
 									<option value="jpy">JPY</option>
@@ -149,7 +149,8 @@ import Logos from '@/components/Logos';
 
 import { BigNumber } from 'bignumber.js';
 import { mapState, mapActions } from 'vuex';
-import { getCoinPrice, getAverageSettings, getConnectability } from '@/utils/api';
+import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
+	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability } from '@/utils/api';
 import { numberToString, formatBlockTimeString, formatByteString, formatDate,
 	formatSiaPriceString, formatSiaDataPriceString, formatSiaMonthlyPriceString,
 	formatSCPPriceString, formatSCPDataPriceString, formatSCPMonthlyPriceString } from '@/utils/format';
@@ -161,7 +162,8 @@ export default {
 		Logos
 	},
 	props: {
-		address: String
+		address: String,
+		network: String
 	},
 	data() {
 		return {
@@ -284,7 +286,7 @@ export default {
 		};
 	},
 	computed: {
-		...mapState(['currency', 'exchangeRate', 'dataUnit', 'blockchain']),
+		...mapState(['currency', 'exchangeRate', 'dataUnit']),
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
 				return null;
@@ -325,7 +327,8 @@ export default {
 		...mapActions(['setCurrency', 'setDataUnit', 'setExchangeRate']),
 		async checkConnection() {
 			try {
-				const resp = await getConnectability(this.address);
+				let checker = this.network === 'scprime' ? getSCPConnectability : getSiaConnectability;
+				const resp = await checker(this.address);
 
 				this.netaddress = resp.netaddress;
 				this.resolved = resp.resolved;
@@ -372,7 +375,8 @@ export default {
 		},
 		async loadAverageSettings() {
 			try {
-				const resp = await getAverageSettings();
+				let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
+				const resp = await checker();
 
 				this.avgSettings = resp;
 			} catch (ex) {
@@ -381,7 +385,8 @@ export default {
 		},
 		async loadPricing() {
 			try {
-				const pricing = await getCoinPrice();
+				let checker = this.network === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
+				const pricing = await checker();
 
 				this.setExchangeRate(pricing);
 			} catch (ex) {
@@ -408,26 +413,27 @@ export default {
 
 			format = format || '';
 
-			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB';
+			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB',
+				currency = this.currency === 'base' ? this.network === 'scprime' ? 'SCP' : 'SC' : this.currency;
 			let formatter;
 
 			switch (format.toLowerCase()) {
 			case 'storage':
-				formatter = this.blockchain === 'scprime' ? formatSCPMonthlyPriceString : formatSiaMonthlyPriceString;
+				formatter = this.network === 'scprime' ? formatSCPMonthlyPriceString : formatSiaMonthlyPriceString;
 				val = new BigNumber(val);
-				formatted = formatter(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, this.dataUnit, currency, this.exchangeRate[currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}/Mo</span>`;
 			case 'siacoin':
-				formatter = this.blockchain === 'scprime' ? formatSCPPriceString : formatSiaPriceString;
+				formatter = this.network === 'scprime' ? formatSCPPriceString : formatSiaPriceString;
 				val = new BigNumber(val);
-				formatted = formatter(val, 2, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, currency, this.exchangeRate[currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'bandwidth':
-				formatter = this.blockchain === 'scprime' ? formatSCPDataPriceString : formatSiaDataPriceString;
+				formatter = this.network === 'scprime' ? formatSCPDataPriceString : formatSiaDataPriceString;
 				val = new BigNumber(val);
-				formatted = formatter(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, this.dataUnit, currency, this.exchangeRate[currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}</span>`;
 			case 'bytes':
