@@ -150,7 +150,9 @@ import Logos from '@/components/Logos';
 import { BigNumber } from 'bignumber.js';
 import { mapState, mapActions } from 'vuex';
 import { getCoinPrice, getAverageSettings, getConnectability } from '@/utils/api';
-import { numberToString, formatBlockTimeString, formatByteString, formatPriceString, formatDataPriceString, formatMonthlyPriceString, formatDate } from '@/utils/format';
+import { numberToString, formatBlockTimeString, formatByteString, formatDate,
+	formatSiaPriceString, formatSiaDataPriceString, formatSiaMonthlyPriceString,
+	formatSCPPriceString, formatSCPDataPriceString, formatSCPMonthlyPriceString } from '@/utils/format';
 
 export default {
 	components: {
@@ -407,21 +409,25 @@ export default {
 			format = format || '';
 
 			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB';
+			let formatter;
 
 			switch (format.toLowerCase()) {
 			case 'storage':
+				formatter = this.blockchain === 'scprime' ? formatSCPMonthlyPriceString : formatSiaMonthlyPriceString;
 				val = new BigNumber(val);
-				formatted = formatMonthlyPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}/Mo</span>`;
 			case 'siacoin':
+				formatter = this.blockchain === 'scprime' ? formatSCPPriceString : formatSiaPriceString;
 				val = new BigNumber(val);
-				formatted = formatPriceString(val, 2, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, this.currency, this.exchangeRate[this.currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
 			case 'bandwidth':
+				formatter = this.blockchain === 'scprime' ? formatSCPDataPriceString : formatSiaDataPriceString;
 				val = new BigNumber(val);
-				formatted = formatDataPriceString(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
+				formatted = formatter(val, 2, this.dataUnit, this.currency, this.exchangeRate[this.currency]);
 
 				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}</span>`;
 			case 'bytes':

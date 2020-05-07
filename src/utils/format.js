@@ -166,7 +166,7 @@ function roundNumber(val, dec) {
 	return num;
 }
 
-function formatSiacoinString(val, dec, unit) {
+function formatSiacoinString(val, dec, unit, factor = 1e24) {
 	unit = unit || 'sc';
 
 	if (!isFinite(dec))
@@ -184,12 +184,12 @@ function formatSiacoinString(val, dec, unit) {
 			type: 'decimal',
 			minimumFractionDigits: dec,
 			maximumFractionDigits: 20
-		}).format(roundNumber(val.dividedBy(1e24), dec)),
+		}).format(roundNumber(val.dividedBy(factor), dec)),
 		label: unit
 	};
 };
 
-function formatCryptoString(val, dec, currency, rate) {
+function formatCryptoString(val, dec, currency, rate, factor = 1e24) {
 	dec = dec || 4;
 
 	if (val.isEqualTo(0) || !rate) {
@@ -204,12 +204,12 @@ function formatCryptoString(val, dec, currency, rate) {
 			type: 'decimal',
 			minimumFractionDigits: dec,
 			maximumFractionDigits: 20
-		}).format(roundNumber(val.dividedBy(1e24).times(rate), dec)),
+		}).format(roundNumber(val.dividedBy(factor).times(rate), dec)),
 		label: currency.toLowerCase()
 	};
 }
 
-function formatCurrencyString(val, currency, rate) {
+function formatCurrencyString(val, currency, rate, factor = 1e24) {
 	const formatter = new Intl.NumberFormat([], { style: 'currency', currency: currency || 'usd', maximumFractionDigits: 20 });
 
 	if (val.isEqualTo(0) || !rate) {
@@ -220,7 +220,7 @@ function formatCurrencyString(val, currency, rate) {
 	}
 
 	return {
-		value: formatter.format(roundNumber(val.dividedBy(1e24).times(rate), 2)),
+		value: formatter.format(roundNumber(val.dividedBy(factor).times(rate), 2)),
 		label: currency.toLowerCase()
 	};
 };
@@ -243,7 +243,7 @@ const supportedCrypto = [
 		'cny'
 	];
 
-export function formatDataPriceString(val, dec, unit, currency, rate) {
+export function formatSiaDataPriceString(val, dec, unit, currency, rate) {
 	if (!val)
 		val = new BigNumber(0);
 
@@ -258,7 +258,7 @@ export function formatDataPriceString(val, dec, unit, currency, rate) {
 	return formatSiacoinString(val.times(byteFactor), dec, currency);
 };
 
-export function formatMonthlyPriceString(val, dec, unit, currency, rate) {
+export function formatSiaMonthlyPriceString(val, dec, unit, currency, rate) {
 	if (!val)
 		val = new BigNumber(0);
 
@@ -273,25 +273,7 @@ export function formatMonthlyPriceString(val, dec, unit, currency, rate) {
 	return formatSiacoinString(val.times(byteFactor).times(4320), dec, currency);
 };
 
-export function formatSiafundString(val) {
-	if (!val || val.isEqualTo(0)) {
-		return {
-			value: '0',
-			label: 'sf'
-		};
-	}
-
-	return {
-		value: new Intl.NumberFormat([], {
-			type: 'decimal',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(val),
-		label: 'sf'
-	};
-};
-
-export function formatPriceString(val, dec, currency, rate) {
+export function formatSiaPriceString(val, dec, currency, rate) {
 	if (!val)
 		val = new BigNumber(0);
 
@@ -302,4 +284,47 @@ export function formatPriceString(val, dec, currency, rate) {
 		return formatCurrencyString(val, currency, rate);
 
 	return formatSiacoinString(val, dec, currency);
+}
+
+export function formatSCPDataPriceString(val, dec, unit, currency, rate) {
+	if (!val)
+		val = new BigNumber(0);
+
+	const byteFactor = unit === 'decimal' ? 1e12 : 1099511627776;
+
+	if (supportedCrypto.indexOf(currency) >= 0 && rate)
+		return formatCryptoString(val.times(byteFactor), dec, currency, rate, 1e27);
+
+	if (supportedCurrency.indexOf(currency) >= 0 && rate)
+		return formatCurrencyString(val.times(byteFactor), currency, rate, 1e27);
+
+	return formatSiacoinString(val.times(byteFactor), dec, currency, 1e27);
+};
+
+export function formatSCPMonthlyPriceString(val, dec, unit, currency, rate) {
+	if (!val)
+		val = new BigNumber(0);
+
+	const byteFactor = unit === 'decimal' ? 1e12 : 1099511627776;
+
+	if (supportedCrypto.indexOf(currency) >= 0 && rate)
+		return formatCryptoString(val.times(byteFactor).times(4320), dec, currency, rate, 1e27);
+
+	if (supportedCurrency.indexOf(currency) >= 0 && rate)
+		return formatCurrencyString(val.times(byteFactor).times(4320), currency, rate, 1e27);
+
+	return formatSiacoinString(val.times(byteFactor).times(4320), dec, currency, 1e27);
+};
+
+export function formatSCPPriceString(val, dec, currency, rate) {
+	if (!val)
+		val = new BigNumber(0);
+
+	if (supportedCrypto.indexOf(currency) >= 0 && rate)
+		return formatCryptoString(val, dec, currency, rate, 1e27);
+
+	if (supportedCurrency.indexOf(currency) >= 0 && rate)
+		return formatCurrencyString(val, currency, rate, 1e27);
+
+	return formatSiacoinString(val, dec, currency, 1e27);
 }
