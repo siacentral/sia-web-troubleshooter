@@ -71,7 +71,7 @@ export async function getCoinPrice() {
 		throw new Error(resp.body.message);
 
 	if (Store.state.blockchain === 'scprime')
-		return resp.body.scp;
+		return resp.body.scprimecoin;
 
 	return resp.body.siacoin;
 }
