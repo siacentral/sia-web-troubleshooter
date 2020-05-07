@@ -4,11 +4,11 @@
 			<form class="panel">
 				<div class="control">
 					<label>Net Address (address and port)</label>
-					<input type="text" v-model="netAddress" />
+					<input type="text" v-model="netAddress" @change="onChangeNetAdress" />
 				</div>
 				<div class="control">
 					<label>Network</label>
-					<select v-model="network">
+					<select v-model="network" @change="onChangeNetwork">
 						<option value="sia">Sia</option>
 						<option value="scprime">SCPrime</option>
 					</select>
@@ -36,7 +36,8 @@ export default {
 		};
 	},
 	beforeMount() {
-		this.network = localStorage.getItem('blockchain') || 'sia';
+		this.netAddress = localStorage.getItem('lastAddress') || '';
+		this.network = localStorage.getItem('network') || 'sia';
 	},
 	methods: {
 		onSubmit() {
@@ -50,7 +51,14 @@ export default {
 		},
 		onChangeNetwork() {
 			try {
-				this.setBlockchain(this.newNetwork);
+				localStorage.setItem('network', this.network);
+			} catch (ex) {
+				console.error('CheckAddress.onChangeNetwork', ex);
+			}
+		},
+		onChangeNetAdress() {
+			try {
+				localStorage.setItem('lastAddress', this.netAddress);
 			} catch (ex) {
 				console.error('CheckAddress.onChangeNetwork', ex);
 			}
