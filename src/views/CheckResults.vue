@@ -26,14 +26,9 @@
 					</display-panel>
 				</template>
 				<h3 class="step-title">Results ({{ passed }}/{{ total }} Tests Passed)</h3>
-				<display-panel class="connection-step" icon="wifi" :severity="resolved ? 'success' : 'severe'">
-					<template v-if="resolved">
-						Net address resolved
-					</template>
-					<template v-else>
-						Your net address could not be resolved
-					</template>
-					<template slot="extras">
+				<display-panel class="connection-step" v-for="result in results" :key="result.name" :icon="testIcon(result.name)" :severity="result.passed ? 'success' : 'severe'">
+					{{ result.message }}
+					<template slot="extras" v-if="result.passed && result.name === 'Net address resolution'">
 						<div class="extras-grid">
 							<div class="extra-title">Net Address</div>
 							<div class="extra-value">{{ netaddress }}</div>
@@ -43,29 +38,7 @@
 							</template>
 						</div>
 					</template>
-				</display-panel>
-				<display-panel class="connection-step" icon="wifi" :severity="connected ? 'success' : 'severe'">
-					<template v-if="connected">
-						Connected to host
-					</template>
-					<template v-else>
-						Cannot connect to host
-					</template>
-					<template slot="extras" v-if="connected">
-						<div class="extras-grid">
-							<div class="extra-title">Latency</div>
-							<div class="extra-value">{{ latency }}ms</div>
-						</div>
-					</template>
-				</display-panel>
-				<display-panel class="connection-step" icon="database" :severity="announced ? 'success' : 'severe'">
-					<template v-if="announced">
-						Your announcement is in the host database
-					</template>
-					<template v-else>
-						The net address was not found in the host database
-					</template>
-					<template slot="extras">
+					<template slot="extras" v-else-if="result.passed && result.name === 'Host Announcement'">
 						<div class="extras-grid" v-if="announced">
 							<div class="extra-title">Public Key</div>
 							<div class="extra-value">{{ publicKey }}</div>
@@ -79,18 +52,22 @@
 							</template>
 						</div>
 					</template>
-				</display-panel>
-				<display-panel class="connection-step" icon="cogs" :severity="scanned ? 'success' : 'severe'">
-					<template v-if="scanned">
-						Latest settings retrieved from host
+					<template slot="extras" v-else-if="result.passed && result.name === 'Connectability'">
+						<div class="extras-grid">
+							<div class="extra-title">Latency</div>
+							<div class="extra-value">{{ latency }}ms</div>
+						</div>
 					</template>
-					<template v-else>
-						Settings could not be retrieved from host
-					</template>
-					<template slot="extras" v-if="scanned">
+					<template slot="extras" v-else-if="result.passed && result.name === 'Retrieve Settings'">
 						<div class="extras-grid">
 							<div class="extra-title">Response Time</div>
 							<div class="extra-value">{{ scanLatency }}ms</div>
+						</div>
+					</template>
+					<template slot="extras" v-else-if="result.name === 'SiaMux Port Open'">
+						<div class="extras-grid">
+							<div class="extra-title">SiaMux Port</div>
+							<div class="extra-value">{{ hostSettings.sia_mux_port }}</div>
 						</div>
 					</template>
 				</display-panel>
@@ -267,19 +244,14 @@ export default {
 					format: 'bytes'
 				}
 			],
+			results: [],
 			hostSettings: {},
 			averageSettings: {},
-			connected: false,
-			scanned: false,
-			resolved: false,
-			announced: false,
 			resolvedIP: [],
 			netaddress: '',
 			latency: 0,
 			scanLatency: 0,
 			publicKey: null,
-			passed: 0,
-			total: 4,
 			errors: [],
 			announcements: [],
 			error: null
@@ -287,6 +259,12 @@ export default {
 	},
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
+		total() {
+			return this.results.length;
+		},
+		passed() {
+			return this.results.filter(r => r.passed).length;
+		},
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
 				return null;
@@ -325,6 +303,17 @@ export default {
 	},
 	methods: {
 		...mapActions(['setCurrency', 'setDataUnit', 'setExchangeRate']),
+		testIcon(test) {
+			const icons = {
+				'Net address resolution': 'wifi',
+				'Host Announcement': 'database',
+				'Connectability': 'wifi',
+				'Retrieve Settings': 'cogs',
+				'SiaMux Port Open': 'wifi'
+			};
+
+			return icons[test] || 'wifi';
+		},
 		async checkConnection() {
 			try {
 				let checker = this.network === 'scprime' ? getSCPConnectability : getSiaConnectability;
@@ -337,24 +326,12 @@ export default {
 				this.scanned = resp.scanned;
 				this.publicKey = resp.public_key;
 				this.hostSettings = resp.external_settings;
+				this.results = resp.results;
 				this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
 				this.scanLatency = isNaN(resp.scan_latency) || !isFinite(resp.scan_latency) ? 0 : resp.scan_latency;
 				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
 				this.errors = Array.isArray(resp.errors) ? resp.errors : [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
-				this.passed = 0;
-
-				if (this.connected)
-					this.passed++;
-
-				if (this.scanned)
-					this.passed++;
-
-				if (this.announced)
-					this.passed++;
-
-				if (this.resolved)
-					this.passed++;
 
 				this.errors.sort((a, b) => {
 					let aV = a.severity === 'severe' ? 2 : a.severity === 'warning' ? 1 : 0,
