@@ -61,7 +61,7 @@ export async function getSiaCoinPrice() {
 }
 
 export async function getSCPAverageSettings() {
-	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scp/hosts/settings/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/hosts/settings/average`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
@@ -72,7 +72,7 @@ export async function getSCPAverageSettings() {
 }
 
 export async function getSCPConnectability(netaddress) {
-	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scp/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
@@ -83,7 +83,7 @@ export async function getSCPConnectability(netaddress) {
 }
 
 export async function getSCPBlock(height) {
-	let url = `https://api.siacentral.com/v2/scp/explorer/block`;
+	let url = `https://api.siacentral.com/v2/scprime/explorer/block`;
 
 	if (height)
 		url += `?height=${height}`;
@@ -97,7 +97,7 @@ export async function getSCPBlock(height) {
 }
 
 export async function getSCPCoinPrice() {
-	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scp/market/exchange-rate`, 'GET', null, true);
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/market/exchange-rate`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
