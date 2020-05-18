@@ -7,7 +7,7 @@ const params = new URLSearchParams(window.location.search.substring(1)),
 	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal';
 let defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'base';
 
-if (defaultCurrency === 'sc')
+if (defaultCurrency === 'sc' || defaultCurrency === 'siacoin')
 	defaultCurrency = 'base';
 
 localStorage.setItem('currency', defaultCurrency);

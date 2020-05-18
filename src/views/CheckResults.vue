@@ -60,14 +60,18 @@
 					</template>
 					<template slot="extras" v-else-if="result.passed && result.name === 'Retrieve Settings'">
 						<div class="extras-grid">
-							<div class="extra-title">Response Time</div>
+							<div class="extra-title">Latency</div>
 							<div class="extra-value">{{ scanLatency }}ms</div>
+							<div class="extra-title">Elapsed Time</div>
+							<div class="extra-value">{{ result.duration || 0 }}ms</div>
 						</div>
 					</template>
-					<template slot="extras" v-else-if="result.name === 'SiaMux Port Open'">
+					<template slot="extras" v-else-if="result.name === 'SiaMux'">
 						<div class="extras-grid">
 							<div class="extra-title">SiaMux Port</div>
 							<div class="extra-value">{{ hostSettings.sia_mux_port }}</div>
+							<div class="extra-title">Elapsed Time</div>
+							<div class="extra-value">{{ result.duration || 0 }}ms</div>
 						</div>
 					</template>
 				</display-panel>
