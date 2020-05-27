@@ -57,4 +57,8 @@ export default {
 		font-size: 1.2rem;
 	}
 }
+
+.scprime .loader .loading-indicator > *, .scprime .loader .loading-text {
+	color: primary-scp;
+}
 </style>

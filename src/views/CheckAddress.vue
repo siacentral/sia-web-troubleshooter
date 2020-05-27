@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 import Logos from '@/components/Logos';
 
 export default {
@@ -38,8 +39,10 @@ export default {
 	beforeMount() {
 		this.netAddress = localStorage.getItem('lastAddress') || '';
 		this.network = localStorage.getItem('network') || 'sia';
+		this.setStyle(this.network);
 	},
 	methods: {
+		...mapActions(['setStyle']),
 		onSubmit() {
 			this.$router.push({
 				name: 'check results',
@@ -52,6 +55,7 @@ export default {
 		onChangeNetwork() {
 			try {
 				localStorage.setItem('network', this.network);
+				this.setStyle(this.network);
 			} catch (ex) {
 				console.error('CheckAddress.onChangeNetwork', ex);
 			}

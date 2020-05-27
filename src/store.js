@@ -4,7 +4,8 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 const params = new URLSearchParams(window.location.search.substring(1)),
-	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal';
+	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal',
+	defaultStyle = localStorage.getItem('network') || 'sia';
 let defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'base';
 
 if (defaultCurrency === 'sc' || defaultCurrency === 'siacoin')
@@ -16,10 +17,14 @@ localStorage.setItem('unit', defaultDataUnit);
 const store = new Vuex.Store({
 	state: {
 		exchangeRate: null,
+		style: defaultStyle,
 		currency: defaultCurrency,
 		dataUnit: defaultDataUnit
 	},
 	mutations: {
+		setStyle(state, style) {
+			state.style = style;
+		},
 		setExchangeRate(state, price) {
 			state.exchangeRate = price;
 		},
@@ -33,6 +38,9 @@ const store = new Vuex.Store({
 	actions: {
 		setExchangeRate(context, price) {
 			context.commit('setExchangeRate', price);
+		},
+		setStyle(context, style) {
+			context.commit('setStyle', style);
 		},
 		setCurrency(context, currency) {
 			context.commit('setCurrency', currency);

@@ -38,19 +38,7 @@ export default {
 	}
 }
 
-body.dark {
-	.message-panel {
-		> svg.svg-inline--fa {
-			color: primary-dark;
-		}
-
-		.loading-title {
-			color: rgba(255, 255, 255, 0.4);
-		}
-
-		.loading-sub {
-			color: rgba(255, 255, 255, 0.4);
-		}
-	}
+.scprime .message-panel > svg.svg-inline--fa {
+	color: primary-scp;	
 }
 </style>

@@ -2,6 +2,7 @@
 
 * {
 	box-sizing: border-box;
+	transition: color 0.3s linear, background-color 0.3s linear;
 }
 
 html, body {
@@ -59,11 +60,11 @@ h1, h2, h3, h4, h5, h6 {
 		color: primary;
 		margin: auto;
 
-		&.icon-severe {
+		&.icon-severe.icon-severe {
 			color: negative-accent;
 		}
 
-		&.icon-warning {
+		&.icon-warning.icon-warning {
 			color: warning-accent;
 		}
 
@@ -172,6 +173,20 @@ h1, h2, h3, h4, h5, h6 {
 @media screen and (min-width: 700px) {
 	.group-stats {
 		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.scprime  {
+	.panel.icon-panel .panel-icon {
+		color: primary-scp;
+	}
+
+	.btn.btn-success {
+		background: primary-scp;
+	}
+
+	.group-stats .group-item {
+		color: primary-scp;
 	}
 }
 

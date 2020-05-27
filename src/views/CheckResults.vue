@@ -302,11 +302,12 @@ export default {
 	mounted() {
 		this.newCurrency = this.currency;
 		this.newUnit = this.dataUnit;
+		this.setStyle(this.network);
 
 		this.checkHost();
 	},
 	methods: {
-		...mapActions(['setCurrency', 'setDataUnit', 'setExchangeRate']),
+		...mapActions(['setStyle', 'setCurrency', 'setDataUnit', 'setExchangeRate']),
 		testIcon(test) {
 			const icons = {
 				'Net address resolution': 'wifi',
@@ -564,6 +565,10 @@ ul {
 	.panel-content {
 		width: 100%;
 	}
+}
+
+.scprime .setting-title {
+	color: primary-scp;
 }
 
 .setting-value {
