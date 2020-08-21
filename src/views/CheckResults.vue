@@ -32,7 +32,7 @@
 				</template>
 				<div class="tests">
 					<div class="host-working" v-if="errors.length === 0">
-						Host working with no issues!
+						All tests passed! Host working with no issues.
 					</div>
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name) }}
@@ -161,16 +161,16 @@ export default {
 			console.log(this.hostDetail.benchmark);
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
-		lastAnnouncement() {
-			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
+		firstAnnouncement() {
+			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
 				return null;
 
 			const announcement = this.announcements[this.announcements.length - 1];
 
 			return `${formatDate(new Date(announcement.timestamp))}`;
 		},
-		firstAnnouncement() {
-			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
+		lastAnnouncement() {
+			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
 				return null;
 
 			const announcement = this.announcements[0];
@@ -337,7 +337,7 @@ export default {
 	width: 100%;
 	height: 100%;
 	grid-gap: 15px;
-	max-width: 1000px;
+	max-width: 1200px;
 	margin: auto;
 	align-content: safe center;
 
@@ -537,6 +537,10 @@ ul {
 }
 
 .scprime {
+	.host-working.host-working {
+		color: primary-scp;
+	}
+
 	.info-title.info-title {
 		color: primary-scp;
 	}

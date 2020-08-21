@@ -2,61 +2,150 @@
 	<div class="host-settings">
 		<div class="setting">
 			<div class="setting-title">Contract Price</div>
-			<div class="setting-value" v-html="formatSCString(contractPrice)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(contractPrice)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(contractPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(contractPrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgContractPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgContractPrice)" />
+			</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Storage Price</div>
-			<div class="setting-value" v-html="formatSCString(storagePrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}/month`)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(storagePrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}/month`)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(storagePrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(storagePrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgStoragePrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgStoragePrice)" />
+			</div>
+			<div class="unit">per {{ dataUnit === 'decimal' ? 'TB' : 'TiB'}} / month</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Download Price</div>
-			<div class="setting-value" v-html="formatSCString(downloadPrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}`)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(downloadPrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}`)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(downloadPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(downloadPrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgDownloadPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgDownloadPrice)" />
+			</div>
+			<div class="unit">per {{ dataUnit === 'decimal' ? 'TB' : 'TiB'}}</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Upload Price</div>
-			<div class="setting-value" v-html="formatSCString(uploadPrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}`)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(uploadPrice, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}`)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(uploadPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(uploadPrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgUploadPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgUploadPrice)" />
+			</div>
+			<div class="unit">per {{ dataUnit === 'decimal' ? 'TB' : 'TiB'}}</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Collateral</div>
-			<div class="setting-value" v-html="formatSCString(collateral, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}/month`)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(collateral, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}/month`)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(collateral)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(collateral)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgCollateral)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgCollateral)" />
+			</div>
+			<div class="unit">per {{ dataUnit === 'decimal' ? 'TB' : 'TiB'}} / month</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Sector Access Price</div>
-			<div class="setting-value" v-html="formatSCString(sectorAccessPrice)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(sectorAccessPrice)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(sectorAccessPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(sectorAccessPrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgSectorAccessPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgSectorAccessPrice)" />
+			</div>
+			<div class="unit">per sector read</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Base RPC Price</div>
-			<div class="setting-value" v-html="formatSCString(baseRPCPrice)" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(baseRPCPrice)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(baseRPCPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(baseRPCPrice)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgBaseRPCPrice)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgBaseRPCPrice)" />
+			</div>
+			<div class="unit">per RPC call</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Max Collateral</div>
-			<div class="setting-value" v-html="formatSCString(maxCollateral, '/contract')" />
-			<div class="setting-secondary-value" v-html="formatCurrencyString(maxCollateral, '/contract')" />
+			<div class="values">
+				<div class="setting-value" v-html="formatSCString(maxCollateral)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(maxCollateral)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatSCString(avgMaxCollateral)" />
+				<div class="setting-secondary-value" v-html="formatCurrencyString(avgMaxCollateral)" />
+			</div>
+			<div class="unit">per contract</div>
 		</div>
 		<div class="setting">
-			<div class="setting-title">Max Duration</div>
-			<div class="setting-value" v-html="formatNumber(maxDuration, 'Blocks')" />
-			<div class="setting-secondary-value" v-html="formatBlockTimeString(maxDuration)" />
+			<div class="setting-title">Max Contract Duration</div>
+			<div class="values">
+				<div class="setting-value" v-html="formatNumber(maxDuration, 'Blocks')" />
+				<div class="setting-secondary-value" v-html="formatBlockTimeString(maxDuration)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatNumber(avgMaxDuration, 'Blocks')" />
+				<div class="setting-secondary-value" v-html="formatBlockTimeString(avgMaxDuration)" />
+			</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Proof Window Duration</div>
-			<div class="setting-value" v-html="formatNumber(windowSize, 'Blocks')" />
-			<div class="setting-secondary-value" v-html="formatBlockTimeString(windowSize)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatNumber(windowSize, 'Blocks')" />
+				<div class="setting-secondary-value" v-html="formatBlockTimeString(windowSize)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatNumber(avgWindowSize, 'Blocks')" />
+				<div class="setting-secondary-value" v-html="formatBlockTimeString(avgWindowSize)" />
+			</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Max Revise Batch Size</div>
-			<div class="setting-value" v-html="formatByteString(maxReviseSize)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatByteString(maxReviseSize)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatByteString(avgMaxReviseSize)" />
+			</div>
 		</div>
 		<div class="setting">
 			<div class="setting-title">Max Download Batch Size</div>
-			<div class="setting-value" v-html="formatByteString(maxDownloadSize)" />
+			<div class="values">
+				<div class="setting-value" v-html="formatByteString(maxDownloadSize)" />
+			</div>
+			<div class="average-values">
+				<div class="setting-average-title">Average</div>
+				<div class="setting-value" v-html="formatByteString(avgMaxDownloadSize)" />
+			</div>
 		</div>
 	</div>
 </template>
@@ -118,6 +207,50 @@ export default {
 		},
 		windowSize() {
 			return this.settings && this.settings.window_size ? this.settings.window_size : 0;
+		},
+		avgContractPrice() {
+			return this.average && this.average.contract_price ? this.average.contract_price : new BigNumber(0);
+		},
+		avgStoragePrice() {
+			const p = this.average && this.average.storage_price ? this.average.storage_price : new BigNumber(0);
+
+			return p.times(4320).times(1e12);
+		},
+		avgDownloadPrice() {
+			const p = this.average && this.average.download_price ? this.average.download_price : new BigNumber(0);
+
+			return p.times(1e12);
+		},
+		avgUploadPrice() {
+			const p = this.average && this.average.upload_price ? this.average.upload_price : new BigNumber(0);
+
+			return p.times(1e12);
+		},
+		avgCollateral() {
+			const p = this.average && this.average.collateral ? this.average.collateral : new BigNumber(0);
+
+			return p.times(4320).times(1e12);
+		},
+		avgMaxCollateral() {
+			return this.average && this.average.max_collateral ? this.average.max_collateral : new BigNumber(0);
+		},
+		avgMaxDuration() {
+			return this.average && this.average.max_duration ? this.average.max_duration : new BigNumber(0);
+		},
+		avgMaxDownloadSize() {
+			return this.average && this.average.max_download_batch_size ? this.average.max_download_batch_size : new BigNumber(0);
+		},
+		avgMaxReviseSize() {
+			return this.average && this.average.max_revise_batch_size ? this.average.max_revise_batch_size : new BigNumber(0);
+		},
+		avgSectorAccessPrice() {
+			return this.average && this.average.sector_access_price ? this.average.sector_access_price : new BigNumber(0);
+		},
+		avgBaseRPCPrice() {
+			return this.average && this.average.base_rpc_price ? this.average.base_rpc_price : new BigNumber(0);
+		},
+		avgWindowSize() {
+			return this.average && this.average.window_size ? this.average.window_size : 0;
 		}
 	},
 	methods: {
@@ -161,7 +294,7 @@ export default {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
-	@media screen and (min-width: 992px) {
+	@media screen and (min-width: 1200px) {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
@@ -173,24 +306,47 @@ export default {
     background: #25272a;
     padding: 15px;
     border-radius: 8px;
+	text-align: center;
+	grid-template-columns: minmax(0, 1fr) auto;
+	font-size: 1rem;
 
 	.setting-title {
 		color: primary;
-		margin-bottom: 5px;
-		font-size: 0.8rem;
-		text-align: center;
+		margin-bottom: 10px;
+		font-size: 0.8em;
+		grid-column: 1 / -1;
 	}
 
-	.setting-value, .setting-secondary-value {
-		text-align: center;
+	.setting-average-title {
+		color: rgba(255, 255, 255, 0.54);
+		font-size: 0.8em;
+		margin-bottom: 3px;
+	}
+
+	.unit {
+		font-size: 0.8em;
+		color: rgba(255, 255, 255, 0.54);
+		grid-column: 1 / -1;
+		margin-top: 5px;
 	}
 
 	.setting-value {
-		font-size: 1.2rem;
+		font-size: 1.2em;
+	}
+
+	.average-values {
+		font-size: 0.8rem;
+		padding: 5px;
+		border-radius: 8px;
+		background: #2d2f32;
+
+		.setting-value {
+			font-size: 1em;
+		}
 	}
 
 	.setting-secondary-value {
-		font-size: 1rem;
+		font-size: 1em;
 		color: rgba(255, 255, 255, 0.54);
 	}
 }
