@@ -3,7 +3,7 @@
 		<div>
 			<div :class="{ 'panel': true,  'icon-panel': (icon && icon.length > 0) }">
 				<div v-if="icon" :class="iconClasses">
-					<font-awesome :icon="['fal', icon]" />
+					<font-awesome :icon="['fad', icon]" />
 				</div>
 				<div class="panel-content">
 					<slot />

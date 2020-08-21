@@ -23,7 +23,16 @@ export async function getSiaAverageSettings() {
 
 	resp.body.settings = parseSettings(resp.body.settings);
 
-	return resp.body.settings;
+	return resp.body;
+}
+
+export async function getSiaHost(netaddress) {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/hosts/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body.host;
 }
 
 export async function getSiaConnectability(netaddress) {
@@ -60,6 +69,15 @@ export async function getSiaCoinPrice() {
 	return resp.body.siacoin;
 }
 
+export async function getSCPHost(netaddress) {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/hosts/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body.host;
+}
+
 export async function getSCPAverageSettings() {
 	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/hosts/settings/average`, 'GET', null, true);
 
@@ -68,7 +86,7 @@ export async function getSCPAverageSettings() {
 
 	resp.body.settings = parseSettings(resp.body.settings);
 
-	return resp.body.settings;
+	return resp.body;
 }
 
 export async function getSCPConnectability(netaddress) {

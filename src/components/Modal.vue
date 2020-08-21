@@ -1,7 +1,7 @@
 <template>
 	<transition name="fade" appear>
 		<div class="modal">
-			<a href="#" class="close" @click.prevent="onClose"><font-awesome :icon="['fal', 'times']" /></a>
+			<a href="#" class="close" @click.prevent="onClose"><font-awesome :icon="['fad', 'times']" /></a>
 			<div class="modal-content">
 				<slot></slot>
 			</div>

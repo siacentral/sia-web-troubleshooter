@@ -1,7 +1,7 @@
 <template>
 	<transition name="fade" appear>
 		<div class="loader">
-			<div class="loading-indicator"><font-awesome :icon="['fal', 'spinner']" /></div>
+			<div class="loading-indicator"><font-awesome :icon="['fad', 'spinner']" /></div>
 			<div class="loading-text">{{ text }}</div>
 		</div>
 	</transition>

@@ -46,7 +46,7 @@ export function formatBlockTimeString(blocks) {
 	if (blocks <= 0)
 		return '0 hr';
 
-	const denoms = { 'month': 4320, 'week': 1008, 'day': 144, 'hour': 6 };
+	const denoms = { 'Month': 4320, 'Week': 1008, 'Day': 144, 'Hour': 6 };
 
 	for (let key in denoms) {
 		const d = denoms[key];
@@ -67,7 +67,7 @@ export function formatBlockTimeString(blocks) {
 
 	return {
 		value: 0,
-		label: 'hours'
+		label: 'Hours'
 	};
 }
 
@@ -133,6 +133,13 @@ export function formatByteSpeed(val, unit, dec) {
 	return numberToString(val, 1024, ['B/s', 'KiB/s', 'MiB/s', 'GiB/s', 'TiB/s', 'PiB/s'], dec);
 }
 
+export function formatBitSpeed(val, unit, dec) {
+	if (unit === 'decimal')
+		return numberToString(val, 1000, ['bps', 'Kpbs', 'Mbps', 'Gbps', 'Tbps', 'Pbps'], dec);
+
+	return numberToString(val, 1024, ['bps', 'Kibps', 'Mibps', 'Gibps', 'Tibps', 'Pibps'], dec);
+}
+
 export function formatNumber(val, dec) {
 	if (!dec)
 		dec = 0;
@@ -158,7 +165,7 @@ function roundNumber(val, dec) {
 	if (decimals.isNaN() || !decimals.isFinite())
 		decimals = new BigNumber(0);
 
-	let num = new BigNumber(parts[0]).plus(decimals.sd(dec)).toNumber();
+	let num = new BigNumber(parts[0]).plus(decimals.toFixed(dec)).toNumber();
 
 	if (neg)
 		num *= -1;

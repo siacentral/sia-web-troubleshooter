@@ -1,8 +1,10 @@
 <template>
 	<div class="page">
 		<transition name="fade" mode="out-in" appear>
-			<div class="page-content" v-if="loaded">
-				<button class="btn btn-inline btn-retry" @click="checkHost"><font-awesome :icon="['fal', 'sync']" />Retry</button>
+			<div class="troubleshoot-content page-content" v-if="loaded">
+				<div class="buttons text-right">
+					<button class="btn btn-inline btn-retry" @click="checkHost"><font-awesome :icon="['fad', 'sync']" />Retry</button>
+				</div>
 				<template v-if="errors.length !== 0">
 					<h3 class="step-title">Issues</h3>
 					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
@@ -15,108 +17,83 @@
 										<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
 									</ul>
 								</div>
-								<div class="extra-title">Resolutions</div>
-								<div class="extra-value">
-									<ul>
-										<li v-for="(resolution, i) in error.resolutions" :key="i">{{ resolution }}</li>
-									</ul>
-								</div>
+								<template v-if="Array.isArray(error.resolutions) && error.resolutions.length !== 0">
+									<div class="extra-title">Resolutions</div>
+									<div class="extra-value">
+										<ul>
+											<li v-for="(resolution, i) in error.resolutions" :key="i">{{ resolution }}</li>
+										</ul>
+									</div>
+								</template>
 							</div>
 						</template>
 					</display-panel>
 				</template>
-				<h3 class="step-title">Results ({{ passed }}/{{ total }} Tests Passed)</h3>
-				<display-panel class="connection-step" v-for="result in results" :key="result.name" :icon="testIcon(result.name)" :severity="result.passed ? 'success' : 'severe'">
-					{{ result.message }}
-					<template slot="extras" v-if="result.passed && result.name === 'Net address resolution'">
-						<div class="extras-grid">
-							<div class="extra-title">Net Address</div>
-							<div class="extra-value">{{ netaddress }}</div>
-							<template v-for="ip in resolvedIP">
-								<div class="extra-title" :key="`title-${ip}`">Resolved IP</div>
-								<div class="extra-value" :key="`ip-${ip}`">{{ ip }}</div>
-							</template>
-						</div>
-					</template>
-					<template slot="extras" v-else-if="result.passed && result.name === 'Host Announcement'">
-						<div class="extras-grid" v-if="announced">
-							<div class="extra-title">Public Key</div>
-							<div class="extra-value">{{ publicKey }}</div>
-							<template v-if="lastAnnouncement">
-								<div class="extra-title">Last Announcement</div>
-								<div class="extra-value">{{ lastAnnouncement }}</div>
-							</template>
-							<template v-if="firstAnnouncement">
-								<div class="extra-title">First Announcement</div>
-								<div class="extra-value">{{ firstAnnouncement }}</div>
-							</template>
-						</div>
-					</template>
-					<template slot="extras" v-else-if="result.passed && result.name === 'Connectability'">
-						<div class="extras-grid">
-							<div class="extra-title">Latency</div>
-							<div class="extra-value">{{ latency }}ms</div>
-						</div>
-					</template>
-					<template slot="extras" v-else-if="result.passed && result.name === 'Retrieve Settings'">
-						<div class="extras-grid">
-							<div class="extra-title">Latency</div>
-							<div class="extra-value">{{ scanLatency }}ms</div>
-							<div class="extra-title">Elapsed Time</div>
-							<div class="extra-value">{{ result.duration || 0 }}ms</div>
-						</div>
-					</template>
-					<template slot="extras" v-else-if="result.name === 'SiaMux'">
-						<div class="extras-grid">
-							<div class="extra-title">SiaMux Port</div>
-							<div class="extra-value">{{ hostSettings.sia_mux_port }}</div>
-							<div class="extra-title">Elapsed Time</div>
-							<div class="extra-value">{{ result.duration || 0 }}ms</div>
-						</div>
-					</template>
-				</display-panel>
-				<template v-if="scanned">
-					<div class="step-title">Current Configuration</div>
-					<div class="host-settings" v-if="scanned">
-						<div class="control">
-							<label>Display Currency</label>
-							<select v-model="newCurrency">
-								<option value="base" v-if="network === 'scprime'">SCPrime Coin</option>
-								<option value="base" v-else>Siacoin</option>
-								<optgroup label="Fiat">
-									<option value="usd">USD</option>
-									<option value="jpy">JPY</option>
-									<option value="eur">EUR</option>
-									<option value="gbp">GBP</option>
-									<option value="aus">AUS</option>
-									<option value="cad">CAD</option>
-									<option value="rub">RUB</option>
-									<option value="cny">CNY</option>
-								</optgroup>
-								<optgroup label="Crypto">
-									<option value="btc">BTC</option>
-									<option value="bch">BCH</option>
-									<option value="eth">ETH</option>
-									<option value="xrp">XRP</option>
-									<option value="ltc">LTC</option>
-								</optgroup>
-							</select>
-						</div>
-						<div class="control">
-							<label>Data Unit</label>
-							<select v-model="newUnit">
-								<option value="binary">Binary (1024 GiB = 1 TiB)</option>
-								<option value="decimal">Decimal (1000 GB = 1 TB)</option>
-							</select>
-						</div>
-						<display-panel class="setting" v-for="setting in formattedSettings" :key="setting.label" :icon="setting.icon">
-							<div class="setting-title">{{ setting.title }}</div>
-							<div class="setting-value" v-html="setting.value"></div>
-							<div class="setting-avg" v-if="setting.average" v-html="`Average: ${setting.average}`"></div>
-						</display-panel>
+				<div class="tests">
+					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': result.failed }" v-for="result in results" :key="result.name">
+						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name) }}
 					</div>
-				</template>
-				<logos />
+					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
+						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
+					</div>
+				</div>
+				<div class="benchmark-error" v-if="benchmark && benchmark.error">
+					<p>Error benchmarking host</p>
+				</div>
+				<benchmark-results v-else-if="benchmark" :benchmark="benchmark" :average="avgBenchmark" />
+				<div class="benchmark-error" v-else>
+					<p>This host has no been benchmark data yet</p>
+				</div>
+				<div class="storage">
+					<font-awesome :icon="['fad', 'hdd']" />
+					<div class="usage-info">
+						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': storagePct }" /></div>
+						<div class="usage" v-html="storageUsageStr" />
+					</div>
+				</div>
+				<div class="info">
+					<div class="info-title">Address</div>
+					<div class="info-value">{{ netaddress }}</div>
+					<div class="info-title">Public Key</div>
+					<div class="info-value"><input :value="publicKey" /></div>
+					<div class="info-title">First Seen</div>
+					<div class="info-value">{{ firstAnnouncement }}</div>
+					<div class="info-title">Estimated Uptime</div>
+					<div class="info-value">{{ estimatedUptime }}</div>
+				</div>
+				<div class="host-settings">
+					<div class="setting">
+						<div class="setting-title">Contract Price</div>
+						<div class="setting-value" v-html="formatSCString(hostSettings.contract_price, 'siacoin')" />
+						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.contract_price, 'siacoin')" />
+					</div>
+					<div class="setting">
+						<div class="setting-title">Storage Price</div>
+						<div class="setting-value" v-html="formatSCString(hostSettings.storage_price, 'storage')" />
+						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.storage_price, 'storage')" />
+					</div>
+					<div class="setting">
+						<div class="setting-title">Download Price</div>
+						<div class="setting-value" v-html="formatSCString(hostSettings.download_price, 'bandwidth')" />
+						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.download_price, 'bandwidth')" />
+					</div>
+					<div class="setting">
+						<div class="setting-title">Upload Price</div>
+						<div class="setting-value" v-html="formatSCString(hostSettings.upload_price, 'bandwidth')" />
+						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.upload_price, 'bandwidth')" />
+					</div>
+					<div class="setting">
+						<div class="setting-title">Collateral</div>
+						<div class="setting-value" v-html="maxContractSize" />
+						<div class="setting-secondary-value" v-html="hostCollateralRatio" />
+					</div>
+					<div class="setting">
+						<div class="setting-title">Max Duration</div>
+						<div class="setting-value" v-html="durationStr" />
+						<div class="setting-secondary-value" v-html="formatValue(hostSettings.max_duration, 'blocks')" />
+					</div>
+				</div>
+				<logos class="footer" />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
 		</transition>
@@ -124,6 +101,7 @@
 </template>
 
 <script>
+import BenchmarkResults from '@/components/BenchmarkResults';
 import DisplayPanel from '@/components/DisplayPanel';
 import Loader from '@/components/Loader';
 import Logos from '@/components/Logos';
@@ -131,13 +109,14 @@ import Logos from '@/components/Logos';
 import { BigNumber } from 'bignumber.js';
 import { mapState, mapActions } from 'vuex';
 import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
-	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability } from '@/utils/api';
-import { numberToString, formatBlockTimeString, formatByteString, formatDate,
+	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost, getSiaHost } from '@/utils/api';
+import { formatNumber, numberToString, formatBlockTimeString, formatByteString, formatDate,
 	formatSiaPriceString, formatSiaDataPriceString, formatSiaMonthlyPriceString,
 	formatSCPPriceString, formatSCPDataPriceString, formatSCPMonthlyPriceString } from '@/utils/format';
 
 export default {
 	components: {
+		BenchmarkResults,
 		DisplayPanel,
 		Loader,
 		Logos
@@ -151,123 +130,43 @@ export default {
 			loaded: false,
 			newCurrency: '',
 			newUnit: '',
-			settings: [
-				{
-					key: 'version',
-					title: 'Version',
-					icon: 'code-branch'
-				},
-				{
-					key: 'accepting_contracts',
-					title: 'Accepting Contracts',
-					icon: 'file-check',
-					format: 'boolean'
-				},
-				{
-					key: 'contract_price',
-					title: 'Contract Price',
-					icon: 'file-contract',
-					format: 'siacoin'
-				},
-				{
-					key: 'storage_price',
-					title: 'Storage Price',
-					icon: 'dollar-sign',
-					format: 'storage'
-				},
-				{
-					key: 'download_price',
-					title: 'Download Price',
-					icon: 'download',
-					format: 'bandwidth'
-				},
-				{
-					key: 'upload_price',
-					title: 'Upload Price',
-					icon: 'upload',
-					format: 'bandwidth'
-				},
-				{
-					key: 'base_rpc_price',
-					title: 'Base RPC Price',
-					icon: 'link',
-					format: 'siacoin'
-				},
-				{
-					key: 'sector_access_price',
-					title: 'Sector Access Price',
-					icon: 'hdd',
-					format: 'siacoin'
-				},
-				{
-					key: 'collateral',
-					title: 'Collateral',
-					icon: 'lock',
-					format: 'storage'
-				},
-				{
-					key: 'max_collateral',
-					title: 'Max Collateral',
-					icon: 'dollar-sign',
-					format: 'siacoin'
-				},
-				{
-					key: 'remaining_storage',
-					title: 'Remaining Storage',
-					icon: 'box-open',
-					format: 'bytes'
-				},
-				{
-					key: 'total_storage',
-					title: 'Total Storage',
-					icon: 'box-full',
-					format: 'bytes'
-				},
-				{
-					key: 'max_duration',
-					title: 'Max Duration',
-					icon: 'clock',
-					format: 'blocks'
-				},
-				{
-					key: 'window_size',
-					title: 'Window Size',
-					icon: 'unlock',
-					format: 'blocks'
-				},
-				{
-					key: 'max_download_batch_size',
-					title: 'Download Batch Size',
-					icon: 'cloud-download',
-					format: 'bytes'
-				},
-				{
-					key: 'max_revise_batch_size',
-					title: 'Max Revise Batch Size',
-					icon: 'cloud-upload',
-					format: 'bytes'
-				}
-			],
 			results: [],
+			hostDetail: {},
 			hostSettings: {},
-			averageSettings: {},
+			avgSettings: {},
+			avgBenchmark: {},
 			resolvedIP: [],
 			netaddress: '',
 			latency: 0,
 			scanLatency: 0,
 			publicKey: null,
-			errors: [],
+			scanErrors: [],
 			announcements: [],
 			error: null
 		};
 	},
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
-		total() {
-			return this.results.length;
+		errors() {
+			let e = [];
+
+			if (Array.isArray(this.scanErrors))
+				e = e.concat(this.scanErrors);
+
+			if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+				e.push({
+					message: 'Benchmark failed',
+					reasons: [this.hostDetail.benchmark.error],
+					severity: 'severe',
+					type: 'benchmark'
+				});
+			}
+
+			return e;
 		},
-		passed() {
-			return this.results.filter(r => r.passed).length;
+		benchmarked() {
+			console.log(this.hostDetail.benchmark);
+			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
@@ -275,7 +174,7 @@ export default {
 
 			const announcement = this.announcements[this.announcements.length - 1];
 
-			return `${announcement.net_address} (${formatDate(new Date(announcement.timestamp))})`;
+			return `${formatDate(new Date(announcement.timestamp))}`;
 		},
 		lastAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
@@ -283,7 +182,26 @@ export default {
 
 			const announcement = this.announcements[0];
 
-			return `${announcement.net_address} (${formatDate(new Date(announcement.timestamp))})`;
+			return `${formatDate(new Date(announcement.timestamp))}`;
+		},
+		estimatedUptime() {
+			return this.hostDetail && this.hostDetail.estimated_uptime ? `${this.hostDetail.estimated_uptime}%` : `0%`;
+		},
+		storageUsageStr() {
+			const rem = this.hostSettings && this.hostSettings.remaining_storage ? this.hostSettings.remaining_storage : 1,
+				total = this.hostSettings && this.hostSettings.total_storage ? this.hostSettings.total_storage : 1,
+				used = total - rem,
+				usedStr = formatByteString(used, 2, this.dataUnit),
+				totalStr = formatByteString(total, 2, this.dataUnit);
+
+			return `${usedStr.value} <span class="currency-display">${usedStr.label}</span> &sol; ${totalStr.value} <span class="currency-display">${totalStr.label}</span>`;
+		},
+		storagePct() {
+			const rem = this.hostSettings && this.hostSettings.remaining_storage ? this.hostSettings.remaining_storage : 1,
+				total = this.hostSettings && this.hostSettings.total_storage ? this.hostSettings.total_storage : 1,
+				used = total - rem;
+
+			return `${(used / total) * 100}%`;
 		},
 		formattedSettings() {
 			return this.settings.reduce((settings, val) => {
@@ -297,6 +215,44 @@ export default {
 
 				return settings;
 			}, []);
+		},
+		benchmark() {
+			if (!this.hostDetail || !this.hostDetail.benchmark)
+				return null;
+
+			return this.hostDetail.benchmark;
+		},
+		hostCollateralRatio() {
+			const storagePrice = this.hostSettings && this.hostSettings.storage_price ? new BigNumber(this.hostSettings.storage_price) : new BigNumber(0),
+				collateralPrice = this.hostSettings && this.hostSettings.collateral ? new BigNumber(this.hostSettings.collateral) : new BigNumber(1);
+			let ratio;
+
+			if (storagePrice.eq(0))
+				ratio = formatNumber(collateralPrice, 2);
+			else
+				ratio = formatNumber(collateralPrice.div(storagePrice), 2);
+
+			return `${ratio} <span class="currency-display">x storage price</span>`;
+		},
+		maxContractSize() {
+			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB',
+				dataSize = this.dataUnit === 'decimal' ? Math.pow(1000, 4) : Math.pow(1024, 4),
+				collateralPrice = this.hostSettings && this.hostSettings.collateral ? new BigNumber(this.hostSettings.collateral) : new BigNumber(1),
+				maxCollateral = this.hostSettings && this.hostSettings.max_collateral ? new BigNumber(this.hostSettings.max_collateral) : new BigNumber(1);
+
+			let amount;
+
+			if (maxCollateral.eq(0))
+				amount = new BigNumber(0);
+			else
+				amount = maxCollateral.div(collateralPrice.times(4320).times(dataSize));
+
+			return `${formatNumber(amount, 2)} <span class="currency-display">${dataSuffix}/Contract/Mo</span>`;
+		},
+		durationStr() {
+			const blocks = this.hostSettings && this.hostSettings.max_duration ? this.hostSettings.max_duration : 0;
+
+			return `${formatNumber(blocks, 0)} <span class="currency-display">Blocks</span>`;
 		}
 	},
 	mounted() {
@@ -308,6 +264,17 @@ export default {
 	},
 	methods: {
 		...mapActions(['setStyle', 'setCurrency', 'setDataUnit', 'setExchangeRate']),
+		testName(test) {
+			const icons = {
+				'net address resolution': 'Net Address Resolved',
+				'host announcement': 'Host Announced',
+				'connectability': 'Renter Connected',
+				'retrieve settings': 'Settings Retrieved',
+				'siamux': 'SiaMux Connected'
+			};
+
+			return icons[test.toLowerCase()];
+		},
 		testIcon(test) {
 			const icons = {
 				'Net address resolution': 'wifi',
@@ -335,10 +302,10 @@ export default {
 				this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
 				this.scanLatency = isNaN(resp.scan_latency) || !isFinite(resp.scan_latency) ? 0 : resp.scan_latency;
 				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
-				this.errors = Array.isArray(resp.errors) ? resp.errors : [];
+				this.scanErrors = Array.isArray(resp.errors) ? resp.errors : [];
 				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
 
-				this.errors.sort((a, b) => {
+				this.scanErrors.sort((a, b) => {
 					let aV = a.severity === 'severe' ? 2 : a.severity === 'warning' ? 1 : 0,
 						bV = b.severity === 'severe' ? 2 : b.severity === 'warning' ? 1 : 0;
 
@@ -360,7 +327,8 @@ export default {
 				let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
 				const resp = await checker();
 
-				this.avgSettings = resp;
+				this.avgSettings = resp.settings;
+				this.avgBenchmark = resp.benchmarks;
 			} catch (ex) {
 				console.error(ex);
 			}
@@ -375,11 +343,21 @@ export default {
 				console.error(ex);
 			}
 		},
+		async loadHost() {
+			try {
+				let checker = this.network === 'scprime' ? getSCPHost : getSiaHost;
+
+				this.hostDetail = await checker(this.address);
+			} catch (ex) {
+				console.log(ex);
+			}
+		},
 		async checkHost() {
 			try {
 				this.loaded = false;
 
 				await Promise.all([
+					this.loadHost(),
 					this.checkConnection(),
 					this.loadAverageSettings(),
 					this.loadPricing()
@@ -390,13 +368,18 @@ export default {
 				console.log(ex);
 			}
 		},
-		formatValue(val, format) {
+		formatSCString(val, format) {
+			return this.formatValue(val, format, this.network !== 'sia' ? 'scp' : 'sc');
+		},
+		formatCurrencyString(val, format) {
+			return this.formatValue(val, format, this.currency);
+		},
+		formatValue(val, format, currency) {
 			let formatted;
 
 			format = format || '';
 
-			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB',
-				currency = this.currency === 'base' ? this.network === 'scprime' ? 'SCP' : 'SC' : this.currency;
+			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB';
 			let formatter;
 
 			switch (format.toLowerCase()) {
@@ -431,7 +414,7 @@ export default {
 			case 'blocks':
 				formatted = formatBlockTimeString(val);
 
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
+				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
 			case 'boolean':
 				return val ? 'Yes' : 'No';
 			default:
@@ -451,13 +434,23 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.page-content {
+.troubleshoot-content.page-content {
+	display: grid;
+	width: 100%;
+	height: 100%;
+	grid-gap: 15px;
 	max-width: 1000px;
 	margin: auto;
+	align-content: safe center;
 
 	@media screen and (min-width: 767px) {
+		grid-template-columns: auto minmax(0, 1fr);
 		width: 80vw;
 	}
+}
+
+.buttons, .footer, .unit-select, .connection-step {
+	grid-column: 1 / -1;
 }
 
 .btn.btn-retry.btn-retry {
@@ -469,6 +462,97 @@ export default {
 
 	svg {
 		margin-right: 8px;
+	}
+}
+
+.benchmark-error {
+	display: grid;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.54);
+}
+
+.storage {
+	display: grid;
+	background: bg-accent;
+	padding: 15px;
+	border-radius: 8px;
+	grid-gap: 15px;
+	grid-template-columns: 45px 1fr;
+	grid-column: 1 / -1;
+	align-items: center;
+
+	svg {
+		display: block;
+		margin: 0 auto;
+		width: 28px;
+		height: auto;
+
+		.fa-secondary {
+			fill: light-gray;
+		}
+	}
+
+	.storage-bar {
+		width: 100%;
+		background: dark-gray;
+		border-radius: 16px;
+		height: 8px;
+		margin-bottom: 5px;
+		overflow: hidden;
+
+		.bar-fill {
+			background: primary;
+			height: 8px;
+			border-radius: 16px;
+		}
+	}
+
+	.usage {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.54);
+		text-align: center;
+	}
+
+}
+
+.tests {
+	display: grid;
+	border-radius: 8px;
+	padding: 15px 0;
+	grid-gap: 10px;
+	align-content: space-between;
+
+	.test {
+		display: grid;
+		grid-gap: 10px;
+		grid-template-columns: 30px 1fr;
+
+		svg {
+			display: block;
+			margin: 0 auto;
+		}
+
+		&.test-passed {
+			.fa-primary {
+				fill: lighten(primary, 20%);
+			}
+
+			.fa-secondary {
+				fill: primary;
+			}
+		}
+
+		&.test-failed {
+			.fa-primary {
+				fill: lighten(negative-accent, 20%);
+			}
+
+			.fa-secondary {
+				fill: negative-accent;
+			}
+		}
 	}
 }
 
@@ -491,59 +575,87 @@ ul {
 	max-width: 100%;
 }
 
-.host-address {
-	background: #efefef;
-    padding: 5px 8px;
-    border-radius: 3px;
-    color: #19cf86;
-    font-size: 0.8rem;
-    margin-top: 10px;
-	width: 100%;
-	overflow-x: auto;
-}
-
 .host-settings {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	grid-gap: 15px;
+	grid-column: 1 / -1;
 
 	@media screen and (min-width: 767px) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+
+	@media screen and (min-width: 992px) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
 }
 
-.extras-grid {
-	.extra-title {
-		margin-bottom: 3px;
+.setting {
+	background: bg-accent;
+	padding: 15px;
+	border-radius: 8px;
+
+	.setting-title {
+		color: primary;
+		font-size: 0.8rem;
+		margin-bottom: 5px;
+		text-align: center;
 	}
 
-	.extra-value {
-		margin-bottom: 15px;
+	.setting-value, .setting-secondary-value {
+		text-align: center;
 	}
 
-	.extra-title, .extra-value {
-		text-overflow: ellipsis;
-		overflow: hidden;
-		white-space: nowrap;
-
-		&:last-child {
-			margin-bottom: 0;
-		}
+	.setting-value {
+		font-size: 1.2rem;
 	}
+
+	.setting-secondary-value {
+		font-size: 1rem;
+		color: rgba(255, 255, 255, 0.54);
+	}
+}
+
+.info {
+	display: grid;
+	padding: 15px;
+	grid-gap: 15px;
+	background: bg-accent;
+	border-radius: 8px;
+	grid-column: 1 / -1;
+	align-items: center;
 
 	@media screen and (min-width: 767px) {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, auto));
-		grid-gap: 15px;
-		justify-content: space-between;
+		grid-template-columns: auto minmax(0, 1fr);
+	}
 
-		.extra-title, .extra-value {
-			margin-bottom: 0;
-		}
+	.info-title {
+		color: primary;
+		font-size: 0.8rem;
+		margin-bottom: 5px;
 
-		.extra-value {
+		@media screen and (min-width: 767px) {
+			margin: 0;
 			text-align: right;
 		}
+	}
+
+	.info-value {
+		font-size: 1.2rem;
+	}
+
+	input {
+		display: block;
+		background: transparent;
+		border: none;
+		outline: none;
+		padding: 0;
+		height: auto;
+		color: inherit;
+		font-size: inherit;
+		font-family: inherit;
+		width: 100%;
+		text-overflow: ellipsis;
 	}
 }
 
@@ -551,49 +663,26 @@ ul {
 	font-size: 1.2rem;
 	color: rgba(255, 255, 255, 0.4);
 	margin-bottom: 15px;
+	grid-column: 1 / -1;
 }
 
-.page-content {
-	grid-template-columns: minmax(0, 1fr);
-}
-
-.setting-title {
-	color: primary;
-	font-size: 0.8rem;
-	margin-bottom: 5px;
-
-	.panel-content {
-		width: 100%;
+.scprime {
+	.setting-title.setting-title, .info-title.info-title {
+		color: primary-scp;
 	}
-}
 
-.scprime .setting-title {
-	color: primary-scp;
-}
+	.storage-bar .bar-fill.bar-fill {
+		background: primary-scp;
+	}
 
-.setting-value {
-	font-size: 1.2rem;
-}
-
-.setting-avg {
-	font-size: 0.8rem;
-	color: rgba(255, 255, 255, 0.54);
-	margin-top: 5px;
-}
-
-@media screen and (min-width: 500px) {
-	.page-content {
-		grid-template-columns: 40vw 40vw;
-
-		.connection-step, .step-title {
-			grid-column: 1 / span 2;
+	.tests .test.test-passed {
+		.fa-primary {
+			fill: lighten(primary-scp, 20%);
 		}
-	}
-}
 
-@media screen and (min-width: 1200px) {
-	.page-content {
-		grid-template-columns: 33vw 33vw;
+		.fa-secondary {
+			fill: primary-scp;
+		}
 	}
 }
 </style>

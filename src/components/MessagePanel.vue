@@ -1,6 +1,6 @@
 <template>
 	<div class="message-panel">
-		<font-awesome :icon="['fal', icon]" v-if="icon && icon.length > 0" />
+		<font-awesome :icon="['fad', icon]" v-if="icon && icon.length > 0" />
 		<div class="loading-title" v-if="text && text.length > 0">{{ text }}</div>
 		<div class="loading-sub" v-if="subtext && subtext.length > 0">{{ subtext }}</div>
 	</div>
