@@ -31,6 +31,9 @@
 					</display-panel>
 				</template>
 				<div class="tests">
+					<div class="host-working" v-if="errors.length === 0">
+						Host working with no issues!
+					</div>
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name) }}
 					</div>
@@ -158,7 +161,7 @@ export default {
 			console.log(this.hostDetail.benchmark);
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
-		firstAnnouncement() {
+		lastAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0 || this.announcements.length === 1)
 				return null;
 
@@ -166,7 +169,7 @@ export default {
 
 			return `${formatDate(new Date(announcement.timestamp))}`;
 		},
-		lastAnnouncement() {
+		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
 				return null;
 
@@ -344,7 +347,7 @@ export default {
 	}
 }
 
-.buttons, .footer, .unit-select, .connection-step {
+.buttons, .footer, .unit-select, .connection-step, .host-working {
 	grid-column: 1 / -1;
 }
 
@@ -416,6 +419,13 @@ export default {
 		text-align: center;
 	}
 
+}
+
+.host-working {
+	font-size: 0.8rem;
+	margin-bottom: 5px;
+	color: primary;
+	text-align: center;
 }
 
 .tests {

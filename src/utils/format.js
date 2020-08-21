@@ -165,7 +165,7 @@ function roundNumber(val, dec) {
 	if (decimals.isNaN() || !decimals.isFinite())
 		decimals = new BigNumber(0);
 
-	let num = new BigNumber(parts[0]).plus(decimals.toFixed(dec)).toNumber();
+	let num = new BigNumber(parts[0]).plus(decimals.sd(dec)).toNumber();
 
 	if (neg)
 		num *= -1;
