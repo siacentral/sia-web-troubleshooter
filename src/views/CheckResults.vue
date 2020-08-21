@@ -216,9 +216,9 @@ export default {
 			const icons = {
 				'net address resolution': 'Net Address Resolved',
 				'host announcement': 'Host Announced',
-				'connectability': `Renter Connected (:${this.hostPort})`,
+				'connectability': `Renter Connected${this.hostPort ? '(:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `SiaMux Connected (:${this.siaMuxPort})`
+				'siamux': `SiaMux Connected${this.siaMuxPort ? '(:' + this.siaMuxPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];

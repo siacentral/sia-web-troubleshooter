@@ -26,6 +26,16 @@
 			<div class="setting-secondary-value" v-html="formatCurrencyString(collateral, `/${this.dataUnit === 'decimal' ? 'TB' : 'TiB'}/month`)" />
 		</div>
 		<div class="setting">
+			<div class="setting-title">Sector Access Price</div>
+			<div class="setting-value" v-html="formatSCString(sectorAccessPrice)" />
+			<div class="setting-secondary-value" v-html="formatCurrencyString(sectorAccessPrice)" />
+		</div>
+		<div class="setting">
+			<div class="setting-title">Base RPC Price</div>
+			<div class="setting-value" v-html="formatSCString(baseRPCPrice)" />
+			<div class="setting-secondary-value" v-html="formatCurrencyString(baseRPCPrice)" />
+		</div>
+		<div class="setting">
 			<div class="setting-title">Max Collateral</div>
 			<div class="setting-value" v-html="formatSCString(maxCollateral, '/contract')" />
 			<div class="setting-secondary-value" v-html="formatCurrencyString(maxCollateral, '/contract')" />
@@ -34,6 +44,11 @@
 			<div class="setting-title">Max Duration</div>
 			<div class="setting-value" v-html="formatNumber(maxDuration, 'Blocks')" />
 			<div class="setting-secondary-value" v-html="formatBlockTimeString(maxDuration)" />
+		</div>
+		<div class="setting">
+			<div class="setting-title">Proof Window Duration</div>
+			<div class="setting-value" v-html="formatNumber(windowSize, 'Blocks')" />
+			<div class="setting-secondary-value" v-html="formatBlockTimeString(windowSize)" />
 		</div>
 		<div class="setting">
 			<div class="setting-title">Max Revise Batch Size</div>
@@ -94,6 +109,15 @@ export default {
 		},
 		maxReviseSize() {
 			return this.settings && this.settings.max_revise_batch_size ? this.settings.max_revise_batch_size : new BigNumber(0);
+		},
+		sectorAccessPrice() {
+			return this.settings && this.settings.sector_access_price ? this.settings.sector_access_price : new BigNumber(0);
+		},
+		baseRPCPrice() {
+			return this.settings && this.settings.base_rpc_price ? this.settings.base_rpc_price : new BigNumber(0);
+		},
+		windowSize() {
+			return this.settings && this.settings.window_size ? this.settings.window_size : 0;
 		}
 	},
 	methods: {
@@ -103,7 +127,7 @@ export default {
 			return `${formatted.value} <span class="currency-display">${formatted.label}${suffix}</span>`;
 		},
 		formatNumber(val, suffix = '') {
-			return `${formatNumber(this.maxDuration, 0)} <span class="currency-display">${suffix}</span>`;
+			return `${formatNumber(val, 0)} <span class="currency-display">${suffix}</span>`;
 		},
 		formatBlockTimeString(val, suffix = '') {
 			const formatted = formatBlockTimeString(val, 2);
