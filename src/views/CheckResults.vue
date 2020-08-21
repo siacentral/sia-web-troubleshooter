@@ -3,6 +3,7 @@
 		<transition name="fade" mode="out-in" appear>
 			<div class="troubleshoot-content page-content" v-if="loaded">
 				<div class="buttons text-right">
+					<button class="btn btn-inline btn-retry" @click="onChangeSettings"><font-awesome :icon="['fad', 'cogs']" /></button>
 					<button class="btn btn-inline btn-retry" @click="checkHost"><font-awesome :icon="['fad', 'sync']" />Retry</button>
 				</div>
 				<template v-if="errors.length !== 0">
@@ -30,7 +31,7 @@
 					</display-panel>
 				</template>
 				<div class="tests">
-					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': result.failed }" v-for="result in results" :key="result.name">
+					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name) }}
 					</div>
 					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
@@ -52,8 +53,12 @@
 					</div>
 				</div>
 				<div class="info">
+					<div class="info-title">Version</div>
+					<div class="info-value">{{ version }}</div>
 					<div class="info-title">Address</div>
 					<div class="info-value">{{ netaddress }}</div>
+					<div class="info-title">SiaMux Port</div>
+					<div class="info-value">:{{ siaMuxPort }}</div>
 					<div class="info-title">Public Key</div>
 					<div class="info-value"><input :value="publicKey" /></div>
 					<div class="info-title">First Seen</div>
@@ -61,63 +66,34 @@
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
 				</div>
-				<div class="host-settings">
-					<div class="setting">
-						<div class="setting-title">Contract Price</div>
-						<div class="setting-value" v-html="formatSCString(hostSettings.contract_price, 'siacoin')" />
-						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.contract_price, 'siacoin')" />
-					</div>
-					<div class="setting">
-						<div class="setting-title">Storage Price</div>
-						<div class="setting-value" v-html="formatSCString(hostSettings.storage_price, 'storage')" />
-						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.storage_price, 'storage')" />
-					</div>
-					<div class="setting">
-						<div class="setting-title">Download Price</div>
-						<div class="setting-value" v-html="formatSCString(hostSettings.download_price, 'bandwidth')" />
-						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.download_price, 'bandwidth')" />
-					</div>
-					<div class="setting">
-						<div class="setting-title">Upload Price</div>
-						<div class="setting-value" v-html="formatSCString(hostSettings.upload_price, 'bandwidth')" />
-						<div class="setting-secondary-value" v-html="formatCurrencyString(hostSettings.upload_price, 'bandwidth')" />
-					</div>
-					<div class="setting">
-						<div class="setting-title">Collateral</div>
-						<div class="setting-value" v-html="maxContractSize" />
-						<div class="setting-secondary-value" v-html="hostCollateralRatio" />
-					</div>
-					<div class="setting">
-						<div class="setting-title">Max Duration</div>
-						<div class="setting-value" v-html="durationStr" />
-						<div class="setting-secondary-value" v-html="formatValue(hostSettings.max_duration, 'blocks')" />
-					</div>
-				</div>
+				<host-settings :network="network" :settings="hostSettings" :average="avgSettings" />
 				<logos class="footer" />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
 		</transition>
+		<change-settings-modal v-if="modal === 'settings'" @close="modal = null" />
 	</div>
 </template>
 
 <script>
 import BenchmarkResults from '@/components/BenchmarkResults';
+import ChangeSettingsModal from '@/components/ChangeSettingsModal';
 import DisplayPanel from '@/components/DisplayPanel';
+import HostSettings from '@/components/HostSettings';
 import Loader from '@/components/Loader';
 import Logos from '@/components/Logos';
 
-import { BigNumber } from 'bignumber.js';
 import { mapState, mapActions } from 'vuex';
 import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
 	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost, getSiaHost } from '@/utils/api';
-import { formatNumber, numberToString, formatBlockTimeString, formatByteString, formatDate,
-	formatSiaPriceString, formatSiaDataPriceString, formatSiaMonthlyPriceString,
-	formatSCPPriceString, formatSCPDataPriceString, formatSCPMonthlyPriceString } from '@/utils/format';
+import { formatByteString, formatDate } from '@/utils/format';
 
 export default {
 	components: {
 		BenchmarkResults,
+		ChangeSettingsModal,
 		DisplayPanel,
+		HostSettings,
 		Loader,
 		Logos
 	},
@@ -128,8 +104,6 @@ export default {
 	data() {
 		return {
 			loaded: false,
-			newCurrency: '',
-			newUnit: '',
 			results: [],
 			hostDetail: {},
 			hostSettings: {},
@@ -142,7 +116,8 @@ export default {
 			publicKey: null,
 			scanErrors: [],
 			announcements: [],
-			error: null
+			error: null,
+			modal: null
 		};
 	},
 	computed: {
@@ -163,6 +138,21 @@ export default {
 			}
 
 			return e;
+		},
+		hostPort() {
+			const addr = this.hostSettings && this.hostSettings.netaddress ? this.hostSettings.netaddress : '',
+				p = addr.split(':');
+
+			if (p.length === 1)
+				return '';
+
+			return p[p.length - 1];
+		},
+		siaMuxPort() {
+			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
+		},
+		version() {
+			return this.hostSettings && this.hostSettings.version ? this.hostSettings.version : 'unknown';
 		},
 		benchmarked() {
 			console.log(this.hostDetail.benchmark);
@@ -203,56 +193,11 @@ export default {
 
 			return `${(used / total) * 100}%`;
 		},
-		formattedSettings() {
-			return this.settings.reduce((settings, val) => {
-				try {
-					settings.push({
-						...val,
-						value: this.formatValue(this.hostSettings[val.key], val.format),
-						average: this.avgSettings[val.key] ? this.formatValue(this.avgSettings[val.key], val.format) : null
-					});
-				} catch (ex) { console.log(ex); }
-
-				return settings;
-			}, []);
-		},
 		benchmark() {
 			if (!this.hostDetail || !this.hostDetail.benchmark)
 				return null;
 
 			return this.hostDetail.benchmark;
-		},
-		hostCollateralRatio() {
-			const storagePrice = this.hostSettings && this.hostSettings.storage_price ? new BigNumber(this.hostSettings.storage_price) : new BigNumber(0),
-				collateralPrice = this.hostSettings && this.hostSettings.collateral ? new BigNumber(this.hostSettings.collateral) : new BigNumber(1);
-			let ratio;
-
-			if (storagePrice.eq(0))
-				ratio = formatNumber(collateralPrice, 2);
-			else
-				ratio = formatNumber(collateralPrice.div(storagePrice), 2);
-
-			return `${ratio} <span class="currency-display">x storage price</span>`;
-		},
-		maxContractSize() {
-			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB',
-				dataSize = this.dataUnit === 'decimal' ? Math.pow(1000, 4) : Math.pow(1024, 4),
-				collateralPrice = this.hostSettings && this.hostSettings.collateral ? new BigNumber(this.hostSettings.collateral) : new BigNumber(1),
-				maxCollateral = this.hostSettings && this.hostSettings.max_collateral ? new BigNumber(this.hostSettings.max_collateral) : new BigNumber(1);
-
-			let amount;
-
-			if (maxCollateral.eq(0))
-				amount = new BigNumber(0);
-			else
-				amount = maxCollateral.div(collateralPrice.times(4320).times(dataSize));
-
-			return `${formatNumber(amount, 2)} <span class="currency-display">${dataSuffix}/Contract/Mo</span>`;
-		},
-		durationStr() {
-			const blocks = this.hostSettings && this.hostSettings.max_duration ? this.hostSettings.max_duration : 0;
-
-			return `${formatNumber(blocks, 0)} <span class="currency-display">Blocks</span>`;
 		}
 	},
 	mounted() {
@@ -264,13 +209,16 @@ export default {
 	},
 	methods: {
 		...mapActions(['setStyle', 'setCurrency', 'setDataUnit', 'setExchangeRate']),
+		onChangeSettings() {
+			this.modal = 'settings';
+		},
 		testName(test) {
 			const icons = {
 				'net address resolution': 'Net Address Resolved',
 				'host announcement': 'Host Announced',
-				'connectability': 'Renter Connected',
+				'connectability': `Renter Connected (:${this.hostPort})`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': 'SiaMux Connected'
+				'siamux': `SiaMux Connected (:${this.siaMuxPort})`
 			};
 
 			return icons[test.toLowerCase()];
@@ -367,59 +315,6 @@ export default {
 			} catch (ex) {
 				console.log(ex);
 			}
-		},
-		formatSCString(val, format) {
-			return this.formatValue(val, format, this.network !== 'sia' ? 'scp' : 'sc');
-		},
-		formatCurrencyString(val, format) {
-			return this.formatValue(val, format, this.currency);
-		},
-		formatValue(val, format, currency) {
-			let formatted;
-
-			format = format || '';
-
-			const dataSuffix = this.dataUnit === 'decimal' ? 'TB' : 'TiB';
-			let formatter;
-
-			switch (format.toLowerCase()) {
-			case 'storage':
-				formatter = this.network === 'scprime' ? formatSCPMonthlyPriceString : formatSiaMonthlyPriceString;
-				val = new BigNumber(val);
-				formatted = formatter(val, 2, this.dataUnit, currency, this.exchangeRate[currency]);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}/Mo</span>`;
-			case 'siacoin':
-				formatter = this.network === 'scprime' ? formatSCPPriceString : formatSiaPriceString;
-				val = new BigNumber(val);
-				formatted = formatter(val, 2, currency, this.exchangeRate[currency]);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
-			case 'bandwidth':
-				formatter = this.network === 'scprime' ? formatSCPDataPriceString : formatSiaDataPriceString;
-				val = new BigNumber(val);
-				formatted = formatter(val, 2, this.dataUnit, currency, this.exchangeRate[currency]);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}/${dataSuffix}</span>`;
-			case 'bytes':
-				val = new BigNumber(val);
-				formatted = formatByteString(val, this.dataUnit, 2);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
-			case 'number':
-				val = new BigNumber(val);
-				formatted = numberToString(val, 1000, ['', 'K', 'M', 'B'], 0);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label.toUpperCase()}</span>`;
-			case 'blocks':
-				formatted = formatBlockTimeString(val);
-
-				return `${formatted.value} <span class="currency-display">${formatted.label}</span>`;
-			case 'boolean':
-				return val ? 'Yes' : 'No';
-			default:
-				return val.toString();
-			}
 		}
 	},
 	watch: {
@@ -453,15 +348,21 @@ export default {
 	grid-column: 1 / -1;
 }
 
-.btn.btn-retry.btn-retry {
-    margin: 0 0 15px;
-    float: right;
-    padding: 0;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.54);
+.buttons {
+	text-align: right;
 
-	svg {
-		margin-right: 8px;
+	button {
+		padding: 0;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.54);
+
+		svg {
+			margin-right: 8px;
+		}
+	}
+
+	button:last-child {
+		margin-right: 0;
 	}
 }
 
@@ -575,47 +476,6 @@ ul {
 	max-width: 100%;
 }
 
-.host-settings {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	grid-gap: 15px;
-	grid-column: 1 / -1;
-
-	@media screen and (min-width: 767px) {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	@media screen and (min-width: 992px) {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-}
-
-.setting {
-	background: bg-accent;
-	padding: 15px;
-	border-radius: 8px;
-
-	.setting-title {
-		color: primary;
-		font-size: 0.8rem;
-		margin-bottom: 5px;
-		text-align: center;
-	}
-
-	.setting-value, .setting-secondary-value {
-		text-align: center;
-	}
-
-	.setting-value {
-		font-size: 1.2rem;
-	}
-
-	.setting-secondary-value {
-		font-size: 1rem;
-		color: rgba(255, 255, 255, 0.54);
-	}
-}
-
 .info {
 	display: grid;
 	padding: 15px;
@@ -667,7 +527,7 @@ ul {
 }
 
 .scprime {
-	.setting-title.setting-title, .info-title.info-title {
+	.info-title.info-title {
 		color: primary-scp;
 	}
 

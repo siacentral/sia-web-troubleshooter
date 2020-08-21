@@ -6,10 +6,11 @@ Vue.use(Vuex);
 const params = new URLSearchParams(window.location.search.substring(1)),
 	defaultDataUnit = params.get('unit') || localStorage.getItem('unit') || 'decimal',
 	defaultStyle = localStorage.getItem('network') || 'sia';
-let defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'base';
 
-if (defaultCurrency === 'sc' || defaultCurrency === 'siacoin')
-	defaultCurrency = 'base';
+let defaultCurrency = params.get('currency') || localStorage.getItem('currency') || 'usd';
+
+if (defaultCurrency === 'sc' || defaultCurrency === 'siacoin' || defaultCurrency === 'base')
+	defaultCurrency = 'usd';
 
 localStorage.setItem('currency', defaultCurrency);
 localStorage.setItem('unit', defaultDataUnit);

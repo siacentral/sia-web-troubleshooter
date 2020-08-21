@@ -115,6 +115,7 @@ export default {
 <style lang="stylus" scoped>
 .host-benchmark {
 	display: grid;
+	align-items: center;
 	grid-gap: 15px;
 
 	@media screen and (min-width: 767px) {
