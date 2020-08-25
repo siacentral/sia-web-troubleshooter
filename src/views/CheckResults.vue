@@ -41,13 +41,7 @@
 						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
 					</div>
 				</div>
-				<div class="benchmark-error" v-if="benchmark && benchmark.error">
-					<p>Error benchmarking host</p>
-				</div>
-				<benchmark-results v-else-if="benchmark" :benchmark="benchmark" :average="avgBenchmark" />
-				<div class="benchmark-error" v-else>
-					<p>This host has no been benchmark data yet</p>
-				</div>
+				<benchmark-results :benchmark="benchmark" :average="avgBenchmark" />
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
 					<div class="usage-info">
@@ -68,6 +62,8 @@
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
+					<div class="info-title">Benchmarks</div>
+					<div class="info-value" v-html="benchmarkPassRate" />
 				</div>
 				<host-settings :network="network" :settings="hostSettings" :average="avgSettings" />
 				<logos class="footer" />
@@ -89,7 +85,7 @@ import Logos from '@/components/Logos';
 import { mapState, mapActions } from 'vuex';
 import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
 	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost, getSiaHost } from '@/utils/api';
-import { formatByteString, formatDate } from '@/utils/format';
+import { formatByteString, formatDate, formatNumber } from '@/utils/format';
 
 export default {
 	components: {
@@ -180,6 +176,16 @@ export default {
 		estimatedUptime() {
 			return this.hostDetail && this.hostDetail.estimated_uptime ? `${this.hostDetail.estimated_uptime}%` : `0%`;
 		},
+		benchmarkPassRate() {
+			const passed = this.hostDetail && this.hostDetail.benchmark && this.hostDetail.benchmark.passed ? this.hostDetail.benchmark.passed : 0,
+				failed = this.hostDetail && this.hostDetail.benchmark && this.hostDetail.benchmark.failed ? this.hostDetail.benchmark.failed : 0;
+			let pct = '0%';
+
+			if (passed + failed > 0)
+				pct = `${Math.round(passed / (passed + failed) * 10000) / 100}%`;
+
+			return `${formatNumber(passed, 0)} <div class="currency-display">passed</div> ${formatNumber(failed, 0)} <div class="currency-display">failed</div> (${pct} success)`;
+		},
 		storageUsageStr() {
 			const rem = this.hostSettings && this.hostSettings.remaining_storage ? this.hostSettings.remaining_storage : 1,
 				total = this.hostSettings && this.hostSettings.total_storage ? this.hostSettings.total_storage : 1,
@@ -219,9 +225,9 @@ export default {
 			const icons = {
 				'net address resolution': 'Net Address Resolved',
 				'host announcement': 'Host Announced',
-				'connectability': `Renter Connected${this.hostPort ? '(:' + this.hostPort + ')' : ''}`,
+				'connectability': `Renter Connected${this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `SiaMux Connected${this.siaMuxPort ? '(:' + this.siaMuxPort + ')' : ''}`
+				'siamux': `SiaMux Connected${this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];
@@ -367,14 +373,6 @@ export default {
 	button:last-child {
 		margin-right: 0;
 	}
-}
-
-.benchmark-error {
-	display: grid;
-	align-items: center;
-	justify-content: center;
-	font-size: 0.8rem;
-	color: rgba(255, 255, 255, 0.54);
 }
 
 .storage {
