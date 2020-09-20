@@ -17,6 +17,7 @@
 
 <script>
 import { formatBitSpeed } from '@/utils/format';
+import { mapState } from 'vuex';
 
 export default {
 	props: {
@@ -24,6 +25,7 @@ export default {
 		average: Object
 	},
 	computed: {
+		...mapState(['dataUnit']),
 		uploadSpeed() {
 			const dataSize = this.benchmark && this.benchmark.data_size ? this.benchmark.data_size : 0,
 				time = this.benchmark && this.benchmark.upload_time ? this.benchmark.upload_time / 1000 : 1;
@@ -49,22 +51,22 @@ export default {
 			return dataSize * 8 / time;
 		},
 		uploadSpeedStr() {
-			const format = formatBitSpeed(this.uploadSpeed, 'decimal', 2);
+			const format = formatBitSpeed(this.uploadSpeed, this.dataUnit, 2);
 
 			return `${format.value} <span class="display-currency">${format.label}</span>`;
 		},
 		downloadSpeedStr() {
-			const format = formatBitSpeed(this.downloadSpeed, 'decimal', 2);
+			const format = formatBitSpeed(this.downloadSpeed, this.dataUnit, 2);
 
 			return `${format.value} <span class="display-currency">${format.label}</span>`;
 		},
 		avgUploadSpeedStr() {
-			const format = formatBitSpeed(this.avgUploadSpeed, 'decimal', 2);
+			const format = formatBitSpeed(this.avgUploadSpeed, this.dataUnit, 2);
 
 			return `(Average ${format.value} <span class="display-currency">${format.label}</span>)`;
 		},
 		avgDownloadSpeedStr() {
-			const format = formatBitSpeed(this.avgDownloadSpeed, 'decimal', 2);
+			const format = formatBitSpeed(this.avgDownloadSpeed, this.dataUnit, 2);
 
 			return `(Average ${format.value} <span class="display-currency">${format.label}</span>)`;
 		},

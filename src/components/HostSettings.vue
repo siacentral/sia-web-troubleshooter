@@ -255,7 +255,7 @@ export default {
 	},
 	methods: {
 		formatByteString(val, suffix = '') {
-			const formatted = formatByteString(val, 2, this.dataUnit);
+			const formatted = formatByteString(val, this.dataUnit, 2);
 
 			return `${formatted.value} <span class="currency-display">${formatted.label}${suffix}</span>`;
 		},

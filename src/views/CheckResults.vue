@@ -42,13 +42,6 @@
 					</div>
 				</div>
 				<benchmark-results :benchmark="benchmark" :average="avgBenchmark" />
-				<div class="storage">
-					<font-awesome :icon="['fad', 'hdd']" />
-					<div class="usage-info">
-						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': storagePct }" /></div>
-						<div class="usage" v-html="storageUsageStr" />
-					</div>
-				</div>
 				<div class="info">
 					<div class="info-title">Version</div>
 					<div class="info-value">{{ version }}</div>
@@ -62,8 +55,13 @@
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
-					<div class="info-title">Benchmarks</div>
-					<div class="info-value" v-html="benchmarkPassRate" />
+				</div>
+				<div class="storage">
+					<font-awesome :icon="['fad', 'hdd']" />
+					<div class="usage-info">
+						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': storagePct }" /></div>
+						<div class="usage" v-html="storageUsageStr" />
+					</div>
 				</div>
 				<host-settings :network="network" :settings="hostSettings" :average="avgSettings" />
 				<logos class="footer" />
@@ -190,8 +188,8 @@ export default {
 			const rem = this.hostSettings && this.hostSettings.remaining_storage ? this.hostSettings.remaining_storage : 1,
 				total = this.hostSettings && this.hostSettings.total_storage ? this.hostSettings.total_storage : 1,
 				used = total - rem,
-				usedStr = formatByteString(used, 2, this.dataUnit),
-				totalStr = formatByteString(total, 2, this.dataUnit);
+				usedStr = formatByteString(used, this.dataUnit, 2),
+				totalStr = formatByteString(total, this.dataUnit, 2);
 
 			return `${usedStr.value} <span class="currency-display">${usedStr.label}</span> &sol; ${totalStr.value} <span class="currency-display">${totalStr.label}</span>`;
 		},
