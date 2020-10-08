@@ -166,6 +166,11 @@ export default {
 	grid-gap: 15px;
 	padding: 15px;
 	overflow-y: auto;
+
+	form.panel {
+		max-width: 500px;
+		margin: 0 auto;
+	}
 }
 
 h5 {
