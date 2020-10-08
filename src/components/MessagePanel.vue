@@ -39,6 +39,6 @@ export default {
 }
 
 .scprime .message-panel > svg.svg-inline--fa {
-	color: primary-scp;	
+	color: primary-scp;
 }
 </style>
