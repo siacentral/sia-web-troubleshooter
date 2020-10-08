@@ -3,6 +3,7 @@
 		<transition name="fade" mode="out-in" appear>
 			<div class="troubleshoot-content page-content" v-if="loaded">
 				<div class="buttons text-right">
+					<router-link class="btn btn-inline btn-back" :to="{ name: 'check address' }"><font-awesome :icon="['fad', 'arrow-left']" /> Back</router-link>
 					<button class="btn btn-inline btn-retry" @click="onChangeSettings"><font-awesome :icon="['fad', 'cogs']" /></button>
 					<button class="btn btn-inline btn-retry" @click="checkHost"><font-awesome :icon="['fad', 'sync']" />Retry</button>
 				</div>
@@ -152,7 +153,6 @@ export default {
 			return this.hostSettings && this.hostSettings.version ? this.hostSettings.version : 'unknown';
 		},
 		benchmarked() {
-			console.log(this.hostDetail.benchmark);
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
 		firstAnnouncement() {
@@ -385,17 +385,22 @@ export default {
 .buttons {
 	text-align: right;
 
-	button {
+	button, a {
 		padding: 0;
 		background: transparent;
 		color: rgba(255, 255, 255, 0.54);
+		text-decoration: none;
 
 		svg {
 			margin-right: 8px;
 		}
 	}
 
-	button:last-child {
+	.btn-back {
+		float: left;
+	}
+
+	&:last-child {
 		margin-right: 0;
 	}
 }

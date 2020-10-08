@@ -12,9 +12,6 @@ import { mapState } from 'vuex';
 export default {
 	computed: {
 		...mapState(['style'])
-	},
-	mounted() {
-		console.log(this.style);
 	}
 };
 </script>
