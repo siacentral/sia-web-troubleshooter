@@ -228,7 +228,7 @@ export default {
 				if (!Array.isArray(h))
 					h = [];
 
-				h = h.filter(h => h.a !== this.address || h.n !== this.network);
+				h = h.filter(h => h.a !== this.address);
 
 				h.unshift({
 					a: this.address,
