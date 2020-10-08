@@ -212,10 +212,37 @@ export default {
 		this.newUnit = this.dataUnit;
 		this.setStyle(this.network);
 
+		this.updateRecentHosts();
 		this.checkHost();
 	},
 	methods: {
 		...mapActions(['setStyle', 'setCurrency', 'setDataUnit', 'setExchangeRate']),
+		updateRecentHosts() {
+			try {
+				let h;
+
+				try {
+					h = JSON.parse(localStorage.getItem('checkedHosts') || []);
+				} catch (ex) {}
+
+				if (!Array.isArray(h))
+					h = [];
+
+				h = h.filter(h => h.a !== this.address || h.n !== this.network);
+
+				h.unshift({
+					a: this.address,
+					n: this.network
+				});
+
+				if (h.length > 100)
+					h.splice(100);
+
+				localStorage.setItem('checkedHosts', JSON.stringify(h));
+			} catch (ex) {
+				console.error('error setting recent hosts: ', ex);
+			}
+		},
 		onChangeSettings() {
 			this.modal = 'settings';
 		},
