@@ -24,13 +24,13 @@
 						<router-link
 							v-for="h in recentSiaHosts" :key="h.netaddress"
 							:class="h.network"
-							:to="{ name: 'check results', params: { address: h.netaddress, network: h.network } }">{{ h.netaddress }}</router-link>
+							:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
 					</div>
 					<div class="host-group" v-if="recentSCPHosts.length !== 0">
 						<router-link
 							v-for="h in recentSCPHosts" :key="h.netaddress"
 							:class="h.network"
-							:to="{ name: 'check results', params: { address: h.netaddress, network: h.network } }">{{ h.netaddress }}</router-link>
+							:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
 					</div>
 				</div>
 			</div>
@@ -121,7 +121,7 @@ export default {
 			this.$router.push({
 				name: 'check results',
 				params: {
-					address: this.netAddress.toLowerCase(),
+					address: encodeURIComponent(this.netAddress.toLowerCase()),
 					network: this.network
 				}
 			});
