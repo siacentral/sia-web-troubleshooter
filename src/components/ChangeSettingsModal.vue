@@ -53,7 +53,6 @@ export default {
 		};
 	},
 	beforeMount() {
-		console.log(this.currency, this.dataUnit);
 		this.newCurrency = this.currency || 'usd';
 		this.newUnit = this.dataUnit || 'decimal';
 	},
