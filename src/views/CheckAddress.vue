@@ -21,16 +21,18 @@
 				<div class="recent-hosts" v-if="recentSiaHosts.length !== 0 || recentSCPHosts.length !== 0">
 					<h5>Recent Hosts</h5>
 					<div class="host-group" v-if="recentSiaHosts.length !== 0">
-						<router-link
-							v-for="h in recentSiaHosts" :key="h.netaddress"
-							:class="h.network"
-							:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
+						<div v-for="h in recentSiaHosts" :key="h.netaddress">
+							<router-link
+								:class="h.network"
+								:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
+						</div>
 					</div>
 					<div class="host-group" v-if="recentSCPHosts.length !== 0">
+						<div v-for="h in recentSCPHosts" :key="h.netaddress">
 						<router-link
-							v-for="h in recentSCPHosts" :key="h.netaddress"
 							:class="h.network"
 							:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -183,7 +185,6 @@ h5 {
 	text-align: center;
 
 	a {
-		display: block;
 		margin-bottom: 1px;
 
 		&.sia {
