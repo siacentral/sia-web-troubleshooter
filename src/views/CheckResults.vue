@@ -11,14 +11,16 @@
 					<h3 class="step-title">Issues</h3>
 					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
 						{{ error.message }}
-						<template slot="extras">
+						<template slot="extras" v-if="Array.isArray(error.reasons) && error.reasons.length !== 0 && Array.isArray(error.resolutions) && error.resolutions.length !== 0">
 							<div class="extras-grid">
-								<div class="extra-title">Reasons</div>
-								<div class="extra-value">
-									<ul>
-										<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
-									</ul>
-								</div>
+								<template v-if="Array.isArray(error.reasons) && error.reasons.length !== 0">
+									<div class="extra-title">Reasons</div>
+									<div class="extra-value">
+										<ul>
+											<li v-for="(reason, i) in error.reasons" :key="i">{{ reason }}</li>
+										</ul>
+									</div>
+								</template>
 								<template v-if="Array.isArray(error.resolutions) && error.resolutions.length !== 0">
 									<div class="extra-title">Resolutions</div>
 									<div class="extra-value">
@@ -36,7 +38,7 @@
 						All tests passed! Host working with no issues.
 					</div>
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
-						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name) }}
+						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
 					</div>
 					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
 						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
@@ -48,8 +50,6 @@
 					<div class="info-value">{{ version }}</div>
 					<div class="info-title">Address</div>
 					<div class="info-value">{{ netaddress }}</div>
-					<div class="info-title">SiaMux Port</div>
-					<div class="info-value">:{{ siaMuxPort }}</div>
 					<div class="info-title">Public Key</div>
 					<div class="info-value"><input :value="publicKey" /></div>
 					<div class="info-title">First Seen</div>
@@ -102,9 +102,16 @@ export default {
 	data() {
 		return {
 			loaded: false,
-			results: [],
+			results: [
+				{ name: 'Net address resolution', passed: false },
+				{ name: 'Host Announcement', passed: false },
+				{ name: 'Connectability', passed: false },
+				{ name: 'Retrieve Settings', passed: false },
+				{ name: 'SiaMux', passed: false }
+			],
 			hostDetail: {},
 			hostSettings: {},
+			priceTable: null,
 			avgSettings: {},
 			avgBenchmark: {},
 			resolvedIP: [],
@@ -145,6 +152,9 @@ export default {
 				return '';
 
 			return p[p.length - 1];
+		},
+		remainingRegEntries() {
+			return this.priceTable && this.priceTable.registryentriesleft && isFinite(this.priceTable.registryentriesleft) ? this.priceTable.registryentriesleft : 0;
 		},
 		siaMuxPort() {
 			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
@@ -246,13 +256,13 @@ export default {
 		onChangeSettings() {
 			this.modal = 'settings';
 		},
-		testName(test) {
+		testName(test, passed) {
 			const icons = {
 				'net address resolution': 'Net Address Resolved',
 				'host announcement': 'Host Announced',
-				'connectability': `Renter Connected${this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
+				'connectability': `Renter Connected${passed && this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `SiaMux Connected${this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
+				'siamux': `SiaMux Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];
@@ -269,81 +279,72 @@ export default {
 			return icons[test] || 'wifi';
 		},
 		async checkConnection() {
-			try {
-				let checker = this.network === 'scprime' ? getSCPConnectability : getSiaConnectability;
-				const resp = await checker(this.address);
+			let checker = this.network === 'scprime' ? getSCPConnectability : getSiaConnectability;
+			const resp = await checker(this.address);
 
-				this.netaddress = resp.netaddress;
-				this.resolved = resp.resolved;
-				this.connected = resp.connected;
-				this.announced = resp.announced;
-				this.scanned = resp.scanned;
-				this.publicKey = resp.public_key;
-				this.hostSettings = resp.external_settings;
-				this.results = resp.results;
-				this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
-				this.scanLatency = isNaN(resp.scan_latency) || !isFinite(resp.scan_latency) ? 0 : resp.scan_latency;
-				this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
-				this.scanErrors = Array.isArray(resp.errors) ? resp.errors : [];
-				this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
+			this.netaddress = resp.netaddress;
+			this.resolved = resp.resolved;
+			this.connected = resp.connected;
+			this.announced = resp.announced;
+			this.scanned = resp.scanned;
+			this.publicKey = resp.public_key;
+			this.hostSettings = resp.external_settings;
+			this.priceTable = resp.price_table || {};
+			this.results = resp.results;
+			this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
+			this.scanLatency = isNaN(resp.scan_latency) || !isFinite(resp.scan_latency) ? 0 : resp.scan_latency;
+			this.resolvedIP = resp.resolved_ips && resp.resolved_ips.length > 0 ? resp.resolved_ips : [];
+			this.scanErrors = Array.isArray(resp.errors) ? resp.errors : [];
+			this.announcements = Array.isArray(resp.announcements) ? resp.announcements : [];
 
-				this.scanErrors.sort((a, b) => {
-					let aV = a.severity === 'severe' ? 2 : a.severity === 'warning' ? 1 : 0,
-						bV = b.severity === 'severe' ? 2 : b.severity === 'warning' ? 1 : 0;
+			this.scanErrors.sort((a, b) => {
+				let aV = a.severity === 'severe' ? 2 : a.severity === 'warning' ? 1 : 0,
+					bV = b.severity === 'severe' ? 2 : b.severity === 'warning' ? 1 : 0;
 
-					if (aV > bV)
-						return -1;
+				if (aV > bV)
+					return -1;
 
-					if (aV < bV)
-						return 1;
+				if (aV < bV)
+					return 1;
 
-					return 0;
-				});
-			} catch (ex) {
-				this.error = ex.message;
-				console.error(ex);
-			}
+				return 0;
+			});
 		},
 		async loadAverageSettings() {
-			try {
-				let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
-				const resp = await checker();
+			let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
+			const resp = await checker();
 
-				this.avgSettings = resp.settings;
-				this.avgBenchmark = resp.benchmarks;
-			} catch (ex) {
-				console.error(ex);
-			}
+			this.avgSettings = resp.settings;
+			this.avgBenchmark = resp.benchmarks;
 		},
 		async loadPricing() {
-			try {
-				let checker = this.network === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
-				const pricing = await checker();
+			let checker = this.network === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
+			const pricing = await checker();
 
-				this.setExchangeRate(pricing);
-			} catch (ex) {
-				console.error(ex);
-			}
+			this.setExchangeRate(pricing);
 		},
 		async loadHost() {
-			try {
-				let checker = this.network === 'scprime' ? getSCPHost : getSiaHost;
+			let checker = this.network === 'scprime' ? getSCPHost : getSiaHost;
 
-				this.hostDetail = await checker(this.address);
-			} catch (ex) {
-				console.log(ex);
-			}
+			this.hostDetail = await checker(this.address);
 		},
 		async checkHost() {
 			try {
 				this.loaded = false;
+				this.netaddress = this.address;
 
-				await Promise.all([
+				const results = (await Promise.allSettled([
 					this.loadHost(),
 					this.checkConnection(),
 					this.loadAverageSettings(),
 					this.loadPricing()
-				]);
+				])).filter(r => r.status === 'rejected').map(r => ({
+					message: r.reason.toString(),
+					severity: 'severe',
+					type: 'troubleshoot'
+				}));
+
+				this.scanErrors.unshift(...results);
 
 				this.loaded = true;
 			} catch (ex) {
