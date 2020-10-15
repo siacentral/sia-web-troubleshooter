@@ -9,9 +9,7 @@
 					<slot />
 				</div>
 			</div>
-			<div class="panel-extras">
-				<slot name="extras" />
-			</div>
+			<div class="panel-extras"><slot name="extras" /></div>
 		</div>
 	</transition>
 </template>
