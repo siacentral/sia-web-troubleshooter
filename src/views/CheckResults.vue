@@ -11,7 +11,7 @@
 					<h3 class="step-title">Issues</h3>
 					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
 						{{ error.message }}
-						<template slot="extras" v-if="Array.isArray(error.reasons) && error.reasons.length !== 0 && Array.isArray(error.resolutions) && error.resolutions.length !== 0">
+						<template slot="extras" v-if="(Array.isArray(error.reasons) && error.reasons.length !== 0) || (Array.isArray(error.resolutions) && error.resolutions.length !== 0)">
 							<div class="extras-grid">
 								<template v-if="Array.isArray(error.reasons) && error.reasons.length !== 0">
 									<div class="extra-title">Reasons</div>
@@ -134,6 +134,7 @@ export default {
 				e = e.concat(this.scanErrors);
 
 			if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+				console.log(this.hostDetail.benchmark.error);
 				e.push({
 					message: 'Benchmark failed',
 					reasons: [this.hostDetail.benchmark.error],
