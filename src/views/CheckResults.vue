@@ -51,7 +51,7 @@
 					<div class="info-title">Address</div>
 					<div class="info-value">{{ netaddress }}</div>
 					<div class="info-title">Public Key</div>
-					<div class="info-value"><input :value="publicKey" /></div>
+					<div class="info-value"><input :value="publicKey" readonly /></div>
 					<div class="info-title">First Seen</div>
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
