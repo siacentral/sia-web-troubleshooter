@@ -134,10 +134,16 @@ export default {
 				e = e.concat(this.scanErrors);
 
 			if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
-				console.log(this.hostDetail.benchmark.error);
 				e.push({
 					message: 'Benchmark failed',
 					reasons: [this.hostDetail.benchmark.error],
+					severity: 'severe',
+					type: 'benchmark'
+				});
+			} else if (this.hostDetail.benchmark && this.hostDetail.benchmark.error_message) {
+				e.push({
+					message: 'Benchmark failed',
+					reasons: [this.hostDetail.benchmark.error_message],
 					severity: 'severe',
 					type: 'benchmark'
 				});
