@@ -140,13 +140,6 @@ export default {
 					severity: 'severe',
 					type: 'benchmark'
 				});
-			} else if (this.hostDetail.benchmark && this.hostDetail.benchmark.error_message) {
-				e.push({
-					message: 'Benchmark failed',
-					reasons: [this.hostDetail.benchmark.error_message],
-					severity: 'severe',
-					type: 'benchmark'
-				});
 			}
 
 			return e;
