@@ -40,11 +40,31 @@
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
 					</div>
-					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
-						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
-					</div>
+					<template v-if="network == 'scprime'">
+						<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
+							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
+						</div>
+					</template>
+					<template v-else>
+						<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
+							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP2 Benchmarked
+						</div>
+						<div :class="{ 'test': true, 'test-passed': r3Benchmarked, 'test-failed': !r3Benchmarked }">
+							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP3 Benchmarked
+						</div>
+					</template>
 				</div>
-				<benchmark-results :benchmark="benchmark" :average="avgBenchmark" />
+				<div>
+					<div class="split-button-wrapper" v-if="network !== 'scprime'">
+						<div class="split-button">
+							<button :class="{'btn': true, 'btn-active': benchMode === 'rhp3' }" @click="benchMode = 'rhp3'">RHP3</button>
+							<button :class="{'btn': true, 'btn-active': benchMode === 'rhp2' }" @click="benchMode = 'rhp2'">RHP2</button>
+						</div>
+					</div>
+					<transition name="fade" mode="out-in">
+						<benchmark-results :benchmark="benchmark" :average="avgBenchmark" :key="benchMode" />
+					</transition>
+				</div>
 				<div class="info">
 					<div class="info-title">Version</div>
 					<div class="info-value">{{ version }}</div>
@@ -64,7 +84,7 @@
 						<div class="usage" v-html="storageUsageStr" />
 					</div>
 				</div>
-				<host-settings :network="network" :settings="hostSettings" :average="avgSettings" />
+				<host-settings :network="network" :settings="hostSettings" :average="averages.settings || {}" />
 				<logos class="footer" />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
@@ -84,7 +104,7 @@ import Logos from '@/components/Logos';
 import { mapState, mapActions } from 'vuex';
 import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
 	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost, getSiaHost } from '@/utils/api';
-import { formatByteString, formatDate, formatNumber } from '@/utils/format';
+import { formatByteString, formatDate } from '@/utils/format';
 
 export default {
 	components: {
@@ -109,11 +129,11 @@ export default {
 				{ name: 'Retrieve Settings', passed: false },
 				{ name: 'SiaMux', passed: false }
 			],
+			benchMode: 'rhp3',
 			hostDetail: {},
 			hostSettings: {},
 			priceTable: null,
-			avgSettings: {},
-			avgBenchmark: {},
+			averages: {},
 			resolvedIP: [],
 			netaddress: '',
 			latency: 0,
@@ -133,13 +153,33 @@ export default {
 			if (Array.isArray(this.scanErrors))
 				e = e.concat(this.scanErrors);
 
-			if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
-				e.push({
-					message: 'Benchmark failed',
-					reasons: [this.hostDetail.benchmark.error],
-					severity: 'severe',
-					type: 'benchmark'
-				});
+			if (this.network === 'scprime') {
+				if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+					e.push({
+						message: 'Benchmark failed',
+						reasons: [this.hostDetail.benchmark.error],
+						severity: 'severe',
+						type: 'benchmark'
+					});
+				}
+			} else {
+				if (this.hostDetail.benchmark_rhp2 && this.hostDetail.benchmark_rhp2.error) {
+					e.push({
+						message: 'RHP2 Benchmark failed',
+						reasons: [this.hostDetail.benchmark_rhp2.error],
+						severity: 'severe',
+						type: 'benchmark'
+					});
+				}
+
+				if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+					e.push({
+						message: 'RHP3 Benchmark failed',
+						reasons: [this.hostDetail.benchmark.error],
+						severity: 'severe',
+						type: 'benchmark'
+					});
+				}
 			}
 
 			return e;
@@ -163,7 +203,22 @@ export default {
 			return this.hostSettings && this.hostSettings.version ? this.hostSettings.version : 'unknown';
 		},
 		benchmarked() {
+			if (this.network === 'scprime')
+				return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
+
+			return this.hostDetail.benchmark_rhp2 && !this.hostDetail.benchmark_rhp2.error;
+		},
+		r3Benchmarked() {
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
+		},
+		avgBenchmark() {
+			if (this.network === 'scprime')
+				return this.averages.benchmarks || {};
+
+			if (this.benchMode === 'rhp2')
+				return this.averages.benchmarks_rhp2 || {};
+
+			return this.averages.benchmarks || {};
 		},
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
@@ -184,16 +239,6 @@ export default {
 		estimatedUptime() {
 			return this.hostDetail && this.hostDetail.estimated_uptime ? `${this.hostDetail.estimated_uptime}%` : `0%`;
 		},
-		benchmarkPassRate() {
-			const passed = this.hostDetail && this.hostDetail.benchmark && this.hostDetail.benchmark.passed ? this.hostDetail.benchmark.passed : 0,
-				failed = this.hostDetail && this.hostDetail.benchmark && this.hostDetail.benchmark.failed ? this.hostDetail.benchmark.failed : 0;
-			let pct = '0%';
-
-			if (passed + failed > 0)
-				pct = `${Math.round(passed / (passed + failed) * 10000) / 100}%`;
-
-			return `${formatNumber(passed, 0)} <div class="currency-display">passed</div> ${formatNumber(failed, 0)} <div class="currency-display">failed</div> (${pct} success)`;
-		},
 		storageUsageStr() {
 			const rem = this.hostSettings && this.hostSettings.remaining_storage ? this.hostSettings.remaining_storage : 1,
 				total = this.hostSettings && this.hostSettings.total_storage ? this.hostSettings.total_storage : 1,
@@ -211,8 +256,21 @@ export default {
 			return `${(used / total) * 100}%`;
 		},
 		benchmark() {
-			if (!this.hostDetail || !this.hostDetail.benchmark)
+			if (!this.hostDetail)
 				return null;
+
+			if (this.network === 'scprime') {
+				if (!this.hostDetail.benchmark)
+					return null;
+
+				return this.hostDetail.benchmark;
+			}
+
+			if ((this.benchMode === 'rhp3' && !this.hostDetail.benchmark) || (this.benchMode === 'rhp3' && !this.hostDetail.benchmark_rhp2))
+				return null;
+
+			if (this.benchMode === 'rhp2')
+				return this.hostDetail.benchmark_rhp2;
 
 			return this.hostDetail.benchmark;
 		}
@@ -260,9 +318,9 @@ export default {
 			const icons = {
 				'net address resolution': 'Net Address Resolved',
 				'host announcement': 'Host Announced',
-				'connectability': `Renter Connected${passed && this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
+				'connectability': `RHP2 Connected${passed && this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `SiaMux Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
+				'siamux': `RHP3 Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];
@@ -314,8 +372,7 @@ export default {
 			let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
 			const resp = await checker();
 
-			this.avgSettings = resp.settings;
-			this.avgBenchmark = resp.benchmarks;
+			this.averages = resp;
 		},
 		async loadPricing() {
 			let checker = this.network === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
@@ -448,6 +505,41 @@ export default {
 		text-align: center;
 	}
 
+}
+
+.split-button {
+	text-align: center;
+    font-size: 0;
+
+	.btn {
+		display: inline-block;
+		width: auto;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		border-right: 1px solid #000000;
+		background: #282a2b;
+		color: rgba(255, 255, 255, 0.84);
+		transition: all 0.3s linear;
+		font-size: 0.8rem;
+		padding: 5px 15px;
+
+		&:first-of-type {
+			border-top-left-radius: 16px;
+			border-bottom-left-radius: 16px;
+		}
+
+		&:last-of-type {
+			border-top-right-radius: 16px;
+			border-bottom-right-radius: 16px;
+			border-right: none;
+		}
+
+		&.btn-active {
+			background: primary;
+			color: rgba(0, 0, 0, 0.54);
+		}
+	}
 }
 
 .host-working {
