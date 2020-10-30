@@ -80,8 +80,17 @@
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
 					<div class="usage-info">
+						<div class="title">Storage Usage</div>
 						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': storagePct }" /></div>
 						<div class="usage" v-html="storageUsageStr" />
+					</div>
+				</div>
+				<div class="registry" v-if="showRegistry">
+					<font-awesome :icon="['fad', 'database']" />
+					<div class="usage-info">
+						<div class="title">Registry Usage</div>
+						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': registryPct }" /></div>
+						<div class="usage" v-html="registryUsageStr" />
 					</div>
 				</div>
 				<host-settings :network="network" :settings="hostSettings" :average="averages.settings || {}" />
@@ -104,7 +113,7 @@ import Logos from '@/components/Logos';
 import { mapState, mapActions } from 'vuex';
 import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability,
 	getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost, getSiaHost } from '@/utils/api';
-import { formatByteString, formatDate } from '@/utils/format';
+import { formatByteString, formatDate, formatNumber } from '@/utils/format';
 
 export default {
 	components: {
@@ -196,6 +205,9 @@ export default {
 		remainingRegEntries() {
 			return this.priceTable && this.priceTable.registryentriesleft && isFinite(this.priceTable.registryentriesleft) ? this.priceTable.registryentriesleft : 0;
 		},
+		totalRegEntries() {
+			return this.priceTable && this.priceTable.registryentriestotal && isFinite(this.priceTable.registryentriestotal) ? this.priceTable.registryentriestotal : 0;
+		},
 		siaMuxPort() {
 			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
 		},
@@ -254,6 +266,23 @@ export default {
 				used = total - rem;
 
 			return `${(used / total) * 100}%`;
+		},
+		showRegistry() {
+			return this.totalRegEntries > 0;
+		},
+		registryUsageStr() {
+			if (this.totalRegEntries < this.remainingRegEntries)
+				return '';
+
+			const used = this.totalRegEntries - this.remainingRegEntries;
+
+			return `${formatNumber(used, 0)} <span class="currency-display">entries</span> &sol; ${formatNumber(this.totalRegEntries, 0)} <span class="currency-display">entries</span>`;
+		},
+		registryPct() {
+			if (this.totalRegEntries < this.remainingRegEntries || this.totalRegEntries === 0)
+				return '0%';
+
+			return `${Math.ceil(((this.totalRegEntries - this.remainingRegEntries) / this.totalRegEntries) * 100) || 1}%`;
 		},
 		benchmark() {
 			if (!this.hostDetail)
@@ -463,10 +492,10 @@ export default {
 	}
 }
 
-.storage {
+.storage, .registry {
 	display: grid;
 	background: bg-accent;
-	padding: 15px;
+	padding: 8px;
 	border-radius: 8px;
 	grid-gap: 15px;
 	grid-template-columns: 45px 1fr;
@@ -482,6 +511,12 @@ export default {
 		.fa-secondary {
 			fill: light-gray;
 		}
+	}
+
+	.title {
+		text-align: center;
+		font-size: 0.8rem;
+		margin-bottom: 8px;
 	}
 
 	.storage-bar {
@@ -505,6 +540,11 @@ export default {
 		text-align: center;
 	}
 
+}
+
+.registry svg {
+	width: auto;
+	height: 28px;
 }
 
 .split-button {
