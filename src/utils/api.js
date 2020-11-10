@@ -16,7 +16,7 @@ async function sendJSONRequest(url, method, data, excludeToken) {
 }
 
 export async function getSiaAverageSettings() {
-	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/hosts/settings/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/hosts/network/averages`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);
@@ -79,7 +79,7 @@ export async function getSCPHost(netaddress) {
 }
 
 export async function getSCPAverageSettings() {
-	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/hosts/settings/average`, 'GET', null, true);
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/scprime/hosts/network/averages`, 'GET', null, true);
 
 	if (resp.statusCode !== 200)
 		throw new Error(resp.body.message);

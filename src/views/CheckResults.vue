@@ -40,22 +40,15 @@
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
 					</div>
-					<template v-if="network == 'scprime'">
-						<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
-							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />Benchmarked
-						</div>
-					</template>
-					<template v-else>
-						<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
-							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP2 Benchmarked
-						</div>
-						<div :class="{ 'test': true, 'test-passed': r3Benchmarked, 'test-failed': !r3Benchmarked }">
-							<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP3 Benchmarked
-						</div>
-					</template>
+					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
+						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP2 Benchmarked
+					</div>
+					<div v-if="showRHP3" :class="{ 'test': true, 'test-passed': r3Benchmarked, 'test-failed': !r3Benchmarked }">
+						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP3 Benchmarked
+					</div>
 				</div>
 				<div>
-					<div class="split-button-wrapper" v-if="network !== 'scprime'">
+					<div class="split-button-wrapper" v-if="showRHP3">
 						<div class="split-button">
 							<button :class="{'btn': true, 'btn-active': benchMode === 'rhp3' }" @click="benchMode = 'rhp3'">RHP3</button>
 							<button :class="{'btn': true, 'btn-active': benchMode === 'rhp2' }" @click="benchMode = 'rhp2'">RHP2</button>
@@ -156,39 +149,31 @@ export default {
 	},
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
+		showRHP3() {
+			return !this.hostSettings?.make?.length;
+		},
 		errors() {
 			let e = [];
 
 			if (Array.isArray(this.scanErrors))
 				e = e.concat(this.scanErrors);
 
-			if (this.network === 'scprime') {
-				if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
-					e.push({
-						message: 'Benchmark failed',
-						reasons: [this.hostDetail.benchmark.error],
-						severity: 'severe',
-						type: 'benchmark'
-					});
-				}
-			} else {
-				if (this.hostDetail.benchmark_rhp2 && this.hostDetail.benchmark_rhp2.error) {
-					e.push({
-						message: 'RHP2 Benchmark failed',
-						reasons: [this.hostDetail.benchmark_rhp2.error],
-						severity: 'severe',
-						type: 'benchmark'
-					});
-				}
+			if (this.hostDetail.benchmark_rhp2 && this.hostDetail.benchmark_rhp2.error) {
+				e.push({
+					message: 'RHP2 Benchmark failed',
+					reasons: [this.hostDetail.benchmark_rhp2.error],
+					severity: 'severe',
+					type: 'benchmark'
+				});
+			}
 
-				if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
-					e.push({
-						message: 'RHP3 Benchmark failed',
-						reasons: [this.hostDetail.benchmark.error],
-						severity: 'severe',
-						type: 'benchmark'
-					});
-				}
+			if (this.showRHP3 && this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+				e.push({
+					message: 'RHP3 Benchmark failed',
+					reasons: [this.hostDetail.benchmark.error],
+					severity: 'severe',
+					type: 'benchmark'
+				});
 			}
 
 			return e;
@@ -212,21 +197,21 @@ export default {
 			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
 		},
 		version() {
-			return this.hostSettings && this.hostSettings.version ? this.hostSettings.version : 'unknown';
+			if (this.hostSettings && typeof this.hostSettings.make === 'string' && this.hostSettings.make.length !== 0)
+				return `${this.hostSettings.make} ${this.hostSettings.model}`;
+
+			if (this.hostSettings && typeof this.hostSettings.version === 'string' && this.hostSettings.version.length !== 0)
+				return `${this.network.toLowerCase() === 'scprime' ? 'ScPrime' : 'Sia'} ${this.hostSettings.version}`;
+
+			return 'unknown';
 		},
 		benchmarked() {
-			if (this.network === 'scprime')
-				return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
-
 			return this.hostDetail.benchmark_rhp2 && !this.hostDetail.benchmark_rhp2.error;
 		},
 		r3Benchmarked() {
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
 		avgBenchmark() {
-			if (this.network === 'scprime')
-				return this.averages.benchmarks || {};
-
 			if (this.benchMode === 'rhp2')
 				return this.averages.benchmarks_rhp2 || {};
 
@@ -287,13 +272,6 @@ export default {
 		benchmark() {
 			if (!this.hostDetail)
 				return null;
-
-			if (this.network === 'scprime') {
-				if (!this.hostDetail.benchmark)
-					return null;
-
-				return this.hostDetail.benchmark;
-			}
 
 			if ((this.benchMode === 'rhp3' && !this.hostDetail.benchmark) || (this.benchMode === 'rhp3' && !this.hostDetail.benchmark_rhp2))
 				return null;
@@ -366,7 +344,7 @@ export default {
 			return icons[test] || 'wifi';
 		},
 		async checkConnection() {
-			let checker = this.network === 'scprime' ? getSCPConnectability : getSiaConnectability;
+			let checker = this.network.toLowerCase() === 'scprime' ? getSCPConnectability : getSiaConnectability;
 			const resp = await checker(this.address);
 
 			this.netaddress = resp.netaddress;
@@ -398,19 +376,19 @@ export default {
 			});
 		},
 		async loadAverageSettings() {
-			let checker = this.network === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
+			let checker = this.network.toLowerCase() === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
 			const resp = await checker();
 
 			this.averages = resp;
 		},
 		async loadPricing() {
-			let checker = this.network === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
+			let checker = this.network.toLowerCase() === 'scprime' ? getSCPCoinPrice : getSiaCoinPrice;
 			const pricing = await checker();
 
 			this.setExchangeRate(pricing);
 		},
 		async loadHost() {
-			let checker = this.network === 'scprime' ? getSCPHost : getSiaHost;
+			let checker = this.network.toLowerCase() === 'scprime' ? getSCPHost : getSiaHost;
 
 			this.hostDetail = await checker(this.address);
 		},
@@ -558,7 +536,7 @@ export default {
 		border-radius: 0;
 		box-shadow: none;
 		border-right: 1px solid #000000;
-		background: #282a2b;
+		background: #2b2b2b;
 		color: rgba(255, 255, 255, 0.84);
 		transition: all 0.3s linear;
 		font-size: 0.8rem;
@@ -708,6 +686,11 @@ ul {
 
 	.storage-bar .bar-fill.bar-fill {
 		background: primary-scp;
+	}
+
+	.split-button .btn.btn-active {
+		background: primary-scp;
+		color: rgba(255, 255, 255, 0.54);
 	}
 
 	.tests .test.test-passed {
