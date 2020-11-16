@@ -150,7 +150,7 @@ export default {
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
 		showRHP3() {
-			return !this.hostSettings?.make?.length;
+			return this.network !== 'scprime' && !this.hostSettings?.make?.length;
 		},
 		errors() {
 			let e = [];
@@ -272,6 +272,9 @@ export default {
 		benchmark() {
 			if (!this.hostDetail)
 				return null;
+
+			if (!this.showRHP3)
+				return this.hostDetail.benchmark_rhp2;
 
 			if ((this.benchMode === 'rhp3' && !this.hostDetail.benchmark) || (this.benchMode === 'rhp3' && !this.hostDetail.benchmark_rhp2))
 				return null;
