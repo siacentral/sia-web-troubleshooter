@@ -36,7 +36,6 @@ export default {
 
 <style lang="stylus" scoped>
 .panel {
-	height: 100%;
 	z-index: 2;
 }
 
