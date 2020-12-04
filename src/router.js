@@ -32,16 +32,7 @@ export default new Router({
 			}
 		},
 		{
-			path: '/results/:address',
-			name: 'check results compat',
-			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
-			props: (route) => ({
-				network: 'sia',
-				address: decodeURIComponent(route.params.address)
-			})
-		},
-		{
-			path: '/results/:network/:address',
+			path: '/:network/results/:address',
 			name: 'check results',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: (route) => {
@@ -57,6 +48,42 @@ export default new Router({
 				return {
 					network,
 					address: decodeURIComponent(route.params.address)
+				};
+			}
+		},
+		/**
+		 * These endpoints remain for compatibility purposes, eventually I'd like to remove them
+		 */
+		{
+			path: '/results/:address',
+			name: 'check results compat',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				console.log(params, query);
+
+				return {
+					name: 'check results',
+					params: {
+						...params,
+						network: 'sia'
+					},
+					query
+				};
+			}
+		},
+		{
+			path: '/results/:network/:address',
+			name: 'check results compat',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				console.log(params, query);
+
+				return {
+					name: 'check results',
+					params,
+					query
 				};
 			}
 		}
