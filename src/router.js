@@ -13,6 +13,25 @@ export default new Router({
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
 		},
 		{
+			path: '/:network',
+			name: 'check address locked',
+			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`),
+			props: (route) => {
+				let network = (route.params?.network || 'sia').toLowerCase();
+
+				switch (network) {
+				case 'sia':
+				case 'scprime':
+					break;
+				default:
+					network = 'sia';
+				}
+				return {
+					network
+				};
+			}
+		},
+		{
 			path: '/results/:address',
 			name: 'check results compat',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
@@ -25,10 +44,21 @@ export default new Router({
 			path: '/results/:network/:address',
 			name: 'check results',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
-			props: (route) => ({
-				network: route.params.network,
-				address: decodeURIComponent(route.params.address)
-			})
+			props: (route) => {
+				let network = (route.params?.network || 'sia').toLowerCase();
+
+				switch (network) {
+				case 'sia':
+				case 'scprime':
+					break;
+				default:
+					network = 'sia';
+				}
+				return {
+					network,
+					address: decodeURIComponent(route.params.address)
+				};
+			}
 		}
 	]
 });

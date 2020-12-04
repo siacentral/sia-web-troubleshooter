@@ -5,11 +5,11 @@
 				<form class="panel">
 					<div class="control">
 						<label>Net Address (address and port)</label>
-						<input type="text" v-model="netAddress" @change="onChangeNetAdress" />
+						<input type="text" v-model="netAddress" />
 					</div>
-					<div class="control">
+					<div v-if="!networkLocked" class="control">
 						<label>Network</label>
-						<select v-model="network" @change="onChangeNetwork">
+						<select v-model="chosenNetwork" @change="onChangeNetwork">
 							<option value="sia">Sia</option>
 							<option value="scprime">SCPrime</option>
 						</select>
@@ -18,16 +18,16 @@
 						<button class="btn btn-success btn-inline" @click.prevent="onSubmit">Check My Host</button>
 					</div>
 				</form>
-				<div class="recent-hosts" v-if="recentSiaHosts.length !== 0 || recentSCPHosts.length !== 0">
+				<div class="recent-hosts" v-if="showRecents">
 					<h5>Recent Hosts</h5>
-					<div class="host-group" v-if="recentSiaHosts.length !== 0">
+					<div class="host-group" v-if="showSiaHosts">
 						<div v-for="h in recentSiaHosts" :key="h.netaddress">
 							<router-link
 								:class="h.network"
 								:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress), network: h.network } }">{{ h.netaddress }}</router-link>
 						</div>
 					</div>
-					<div class="host-group" v-if="recentSCPHosts.length !== 0">
+					<div class="host-group" v-if="showSCPHosts">
 						<div v-for="h in recentSCPHosts" :key="h.netaddress">
 						<router-link
 							:class="h.network"
@@ -49,15 +49,53 @@ export default {
 	components: {
 		Logos
 	},
+	props: {
+		network: String
+	},
 	data() {
 		return {
-			network: 'sia',
+			chosenNetwork: 'sia',
+			networkLocked: false,
 			netAddress: '',
 			recentSiaHosts: [],
 			recentSCPHosts: []
 		};
 	},
+	computed: {
+		showRecents() {
+			if (this.networkLocked) {
+				switch (this.network) {
+				case 'sia':
+					return this.recentSiaHosts?.length > 0;
+				case 'scprime':
+					return this.recentSCPHosts?.length > 0;
+				default:
+					return false;
+				}
+			}
+
+			return this.recentSiaHosts?.length > 0 && this.recentSCPHosts?.length > 0;
+		},
+		showSiaHosts() {
+			if (this.networkLocked)
+				return this.network === 'sia' && this.recentSiaHosts?.length > 0;
+
+			return this.recentSiaHosts?.length > 0;
+		},
+		showSCPHosts() {
+			if (this.networkLocked)
+				return this.network === 'scprime' && this.recentSCPHosts?.length > 0;
+
+			return this.recentSCPHosts?.length > 0;
+		}
+	},
 	beforeMount() {
+		if (this.network) {
+			this.networkLocked = true;
+			this.chosenNetwork = this.network;
+			localStorage.setItem('network', this.network);
+		}
+
 		this.onStorageUpdate();
 	},
 	created() {
@@ -112,9 +150,8 @@ export default {
 
 				this.recentSiaHosts = siaHosts;
 				this.recentSCPHosts = scpHosts;
-				this.netAddress = localStorage.getItem('lastAddress') || '';
-				this.network = localStorage.getItem('network') || 'sia';
-				this.setStyle(this.network);
+				this.chosenNetwork = localStorage.getItem('network') || 'sia';
+				this.setStyle(this.chosenNetwork);
 			} catch (ex) {
 				console.error('CheckAddress.onRecentHostsUpdate', ex);
 			}
@@ -124,21 +161,14 @@ export default {
 				name: 'check results',
 				params: {
 					address: encodeURIComponent(this.netAddress.toLowerCase()),
-					network: this.network
+					network: this.chosenNetwork
 				}
 			});
 		},
 		onChangeNetwork() {
 			try {
-				localStorage.setItem('network', this.network);
-				this.setStyle(this.network);
-			} catch (ex) {
-				console.error('CheckAddress.onChangeNetwork', ex);
-			}
-		},
-		onChangeNetAdress() {
-			try {
-				localStorage.setItem('lastAddress', this.netAddress);
+				localStorage.setItem('network', this.chosenNetwork);
+				this.setStyle(this.chosenNetwork);
 			} catch (ex) {
 				console.error('CheckAddress.onChangeNetwork', ex);
 			}
