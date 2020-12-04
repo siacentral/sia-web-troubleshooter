@@ -32,7 +32,7 @@ export default new Router({
 			}
 		},
 		{
-			path: '/:network/results/:address',
+			path: '/:network/:address',
 			name: 'check results',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: (route) => {
@@ -68,6 +68,21 @@ export default new Router({
 						...params,
 						network: 'sia'
 					},
+					query
+				};
+			}
+		},
+		{
+			path: '/:network/results/:address',
+			name: 'check results compat',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				console.log(params, query);
+
+				return {
+					name: 'check results',
+					params,
 					query
 				};
 			}
