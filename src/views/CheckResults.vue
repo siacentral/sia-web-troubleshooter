@@ -178,6 +178,22 @@ export default {
 
 			return e;
 		},
+		searchNetAddress() {
+			const components = this.address.split(':'),
+				defaultPort = this.network === 'scprime' ? '4282' : '9982';
+
+			if (components.length === 0)
+				return this.address;
+			else if (components.length === 1)
+				return `${this.address}:${defaultPort}`;
+
+			const port = parseInt(components[components.length - 1], 10);
+
+			if (!port || isNaN(port) || !isFinite(port))
+				return `${this.address}:${defaultPort}`;
+
+			return this.address;
+		},
 		hostPort() {
 			const addr = this.hostSettings && this.hostSettings.netaddress ? this.hostSettings.netaddress : '',
 				p = addr.split(':');
@@ -348,7 +364,7 @@ export default {
 		},
 		async checkConnection() {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPConnectability : getSiaConnectability;
-			const resp = await checker(this.address);
+			const resp = await checker(this.searchNetAddress);
 
 			this.netaddress = resp.netaddress;
 			this.resolved = resp.resolved;
@@ -393,7 +409,7 @@ export default {
 		async loadHost() {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPHost : getSiaHost;
 
-			this.hostDetail = await checker(this.address);
+			this.hostDetail = await checker(this.searchNetAddress);
 		},
 		async checkHost() {
 			try {
