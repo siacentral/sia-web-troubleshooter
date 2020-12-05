@@ -7,6 +7,55 @@ export default new Router({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes: [
+		/**
+		 * These endpoints remain for compatibility purposes, eventually I'd like to remove them
+		 */
+		{
+			path: '/results/:address',
+			name: 'check results compat 1',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				return {
+					name: 'check results',
+					params: {
+						...params,
+						network: 'sia'
+					},
+					query
+				};
+			}
+		},
+		{
+			path: '/:network/results/:address',
+			name: 'check results compat 2',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				console.log(params, query);
+
+				return {
+					name: 'check results',
+					params,
+					query
+				};
+			}
+		},
+		{
+			path: '/results/:network/:address',
+			name: 'check results compat 3',
+			redirect: (to) => {
+				const { params, query } = to;
+
+				console.log(params, query);
+
+				return {
+					name: 'check results',
+					params,
+					query
+				};
+			}
+		},
 		{
 			path: '/',
 			name: 'check address',
@@ -51,56 +100,5 @@ export default new Router({
 				};
 			}
 		},
-		/**
-		 * These endpoints remain for compatibility purposes, eventually I'd like to remove them
-		 */
-		{
-			path: '/results/:address',
-			name: 'check results compat',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				console.log(params, query);
-
-				return {
-					name: 'check results',
-					params: {
-						...params,
-						network: 'sia'
-					},
-					query
-				};
-			}
-		},
-		{
-			path: '/:network/results/:address',
-			name: 'check results compat',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				console.log(params, query);
-
-				return {
-					name: 'check results',
-					params,
-					query
-				};
-			}
-		},
-		{
-			path: '/results/:network/:address',
-			name: 'check results compat',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				console.log(params, query);
-
-				return {
-					name: 'check results',
-					params,
-					query
-				};
-			}
-		}
 	]
 });
