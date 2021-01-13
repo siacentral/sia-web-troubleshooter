@@ -99,6 +99,6 @@ export default new Router({
 					address: decodeURIComponent(route.params.address)
 				};
 			}
-		},
+		}
 	]
 });

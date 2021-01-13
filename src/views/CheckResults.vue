@@ -9,7 +9,12 @@
 				</div>
 				<template v-if="errors.length !== 0">
 					<h3 class="step-title">Issues</h3>
-					<display-panel class="connection-step" v-for="(error, i) in errors" :key="i" icon="exclamation-circle" :severity="error.severity">
+					<display-panel v-for="(error, i) in errors"
+						:key="i"
+						class="connection-step"
+						icon="exclamation-circle"
+						:severity="error.severity"
+						:moreInfoLink="showMoreInfo(error)">
 						{{ error.message }}
 						<template slot="extras" v-if="(Array.isArray(error.reasons) && error.reasons.length !== 0) || (Array.isArray(error.resolutions) && error.resolutions.length !== 0)">
 							<div class="extras-grid">
@@ -311,6 +316,12 @@ export default {
 	},
 	methods: {
 		...mapActions(['setStyle', 'setCurrency', 'setDataUnit', 'setExchangeRate']),
+		showMoreInfo(err) {
+			if (err.message.indexOf('Sia versions below v1.5.4 will be on the old chain after this date') !== -1)
+				return 'https://blog.sia.tech/launching-the-sia-foundation-ee47dfab4d2c';
+
+			return null;
+		},
 		updateRecentHosts() {
 			try {
 				let h;

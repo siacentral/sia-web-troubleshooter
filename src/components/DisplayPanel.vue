@@ -7,6 +7,9 @@
 				</div>
 				<div class="panel-content">
 					<slot />
+					<div class="learn-more" v-if="moreInfoLink">
+						<a :href="moreInfoLink || '#'" target="_blank">Learn More</a>
+					</div>
 				</div>
 			</div>
 			<div class="panel-extras"><slot name="extras" /></div>
@@ -19,6 +22,7 @@ export default {
 	props: {
 		icon: String,
 		severity: String,
+		moreInfoLink: String,
 		extras: Boolean
 	},
 	computed: {
@@ -53,6 +57,16 @@ export default {
 
 	&:empty {
 		padding: 0;
+	}
+}
+
+.learn-more {
+	margin-top: 3px;
+
+	a {
+		font-size: 0.8rem;
+		color: primary;
+		text-decoration: none;
 	}
 }
 
