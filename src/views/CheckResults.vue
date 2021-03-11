@@ -233,7 +233,7 @@ export default {
 			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
 		avgBenchmark() {
-			if (this.benchMode === 'rhp2')
+			if (this.benchMode === 'rhp2' || this.network === 'scprime')
 				return this.averages.benchmarks_rhp2 || {};
 
 			return this.averages.benchmarks || {};
