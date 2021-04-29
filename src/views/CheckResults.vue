@@ -404,6 +404,9 @@ export default {
 
 				return 0;
 			});
+
+			if (this.publicKey?.trim().length !== 0)
+				await this.loadHost(this.publicKey);
 		},
 		async loadAverageSettings() {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
@@ -420,7 +423,7 @@ export default {
 		async loadHost() {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPHost : getSiaHost;
 
-			this.hostDetail = await checker(this.searchNetAddress);
+			this.hostDetail = await checker(this.publicKey);
 		},
 		async checkHost() {
 			try {
@@ -428,7 +431,6 @@ export default {
 				this.netaddress = this.address;
 
 				const results = (await Promise.allSettled([
-					this.loadHost(),
 					this.checkConnection(),
 					this.loadAverageSettings(),
 					this.loadPricing()
