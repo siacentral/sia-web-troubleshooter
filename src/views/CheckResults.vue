@@ -68,10 +68,8 @@
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
-					<template v-if="siastatsID && siastatsID > 0">
-						<div class="info-title" />
-						<div class="info-value"><a class="host-monitor-link" :href="hostMonitorLink" target="_blank"><font-awesome :icon="['fad', 'external-link']" /> view on SiaStats</a></div>
-					</template>
+					<div class="info-title" />
+					<div class="info-value text-right"><button class="host-monitor-link" @click.prevent="openSiaStatsMonitor" :disabled="openingSiaStats"><font-awesome :icon="['fad', 'external-link']" /> view on SiaStats</button></div>
 				</div>
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
@@ -138,7 +136,6 @@ export default {
 			hostDetail: {},
 			hostSettings: {},
 			priceTable: null,
-			siastatsID: null,
 			averages: {},
 			resolvedIP: [],
 			netaddress: '',
@@ -148,7 +145,8 @@ export default {
 			scanErrors: [],
 			announcements: [],
 			error: null,
-			modal: null
+			modal: null,
+			openingSiaStats: false
 		};
 	},
 	computed: {
@@ -181,9 +179,6 @@ export default {
 			}
 
 			return e;
-		},
-		hostMonitorLink() {
-			return `https://siastats.info/hosts?=${this.siastatsID || 0}`;
 		},
 		searchNetAddress() {
 			const components = this.address.split(':'),
@@ -409,8 +404,7 @@ export default {
 
 			if (this.publicKey?.trim().length !== 0) {
 				await Promise.allSettled([
-					this.loadHost(this.publicKey),
-					this.loadSiaStatsHost(this.publicKey)
+					this.loadHost(this.publicKey)
 				]);
 			}
 		},
@@ -431,19 +425,33 @@ export default {
 
 			this.hostDetail = await checker(this.publicKey);
 		},
-		async loadSiaStatsHost(key) {
+		async openSiaStatsMonitor() {
 			try {
-				const url = `https://siastats.info:3510/hosts-api/get_id/${encodeURIComponent(key)}`,
+				if (this.openingSiaStats)
+					return;
+
+				this.openingSiaStats = true;
+
+				const url = `https://siastats.info:3510/hosts-api/get_id/${encodeURIComponent(this.publicKey)}`,
 					resp = await fetch(url),
 					{ status, id } = await resp.json();
 
 				if (status !== 'ok')
 					return;
 
-				this.siastatsID = id;
-				console.log(this.siastatsID);
+				const a = document.createElement('a');
+				a.href = `https://siastats.info/hosts?=${encodeURIComponent(id)}`;
+				a.target = '_blank';
+				a.style.display = 'hidden';
+				a.style.opacity = 0;
+				a.style.position = 'fixed';
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
 			} catch (ex) {
 				console.error(ex);
+			} finally {
+				this.openingSiaStats = false;
 			}
 		},
 		async checkHost() {
@@ -704,6 +712,10 @@ ul {
 
 	.info-value {
 		font-size: 1.2rem;
+
+		&.text-right {
+			text-align: right;
+		}
 	}
 
 	input {
@@ -722,11 +734,22 @@ ul {
 }
 
 .host-monitor-link {
-	display: block;
 	font-size: 0.8rem;
 	color: rgba(255, 255, 255, 0.4);
 	text-decoration: none;
-	text-align: right;
+	background: none;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	transition: color linear 0.3s;
+
+	&:hover, &:focus, &:active {
+		color: primary;
+	}
+
+	&:disabled {
+		opacity: 0.54;
+	}
 }
 
 .step-title {
