@@ -45,12 +45,6 @@
 					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
 						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
 					</div>
-					<div :class="{ 'test': true, 'test-passed': benchmarked, 'test-failed': !benchmarked }">
-						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP2 Benchmarked
-					</div>
-					<div v-if="showRHP3" :class="{ 'test': true, 'test-passed': r3Benchmarked, 'test-failed': !r3Benchmarked }">
-						<font-awesome :icon="['fad', 'tachometer-alt-fast']" />RHP3 Benchmarked
-					</div>
 				</div>
 				<div>
 					<div class="split-button-wrapper" v-if="showRHP3">
@@ -74,6 +68,10 @@
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
+					<template v-if="siastatsID && siastatsID > 0">
+						<div class="info-title" />
+						<div class="info-value"><a class="host-monitor-link" :href="hostMonitorLink" target="_blank"><font-awesome :icon="['fad', 'external-link']" /> view on SiaStats</a></div>
+					</template>
 				</div>
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
@@ -140,6 +138,7 @@ export default {
 			hostDetail: {},
 			hostSettings: {},
 			priceTable: null,
+			siastatsID: null,
 			averages: {},
 			resolvedIP: [],
 			netaddress: '',
@@ -167,7 +166,7 @@ export default {
 				e.push({
 					message: 'RHP2 Benchmark failed',
 					reasons: [this.hostDetail.benchmark_rhp2.error],
-					severity: 'severe',
+					severity: 'warning',
 					type: 'benchmark'
 				});
 			}
@@ -176,12 +175,15 @@ export default {
 				e.push({
 					message: 'RHP3 Benchmark failed',
 					reasons: [this.hostDetail.benchmark.error],
-					severity: 'severe',
+					severity: 'warning',
 					type: 'benchmark'
 				});
 			}
 
 			return e;
+		},
+		hostMonitorLink() {
+			return `https://siastats.info/hosts?=${this.siastatsID || 0}`;
 		},
 		searchNetAddress() {
 			const components = this.address.split(':'),
@@ -405,8 +407,12 @@ export default {
 				return 0;
 			});
 
-			if (this.publicKey?.trim().length !== 0)
-				await this.loadHost(this.publicKey);
+			if (this.publicKey?.trim().length !== 0) {
+				await Promise.allSettled([
+					this.loadHost(this.publicKey),
+					this.loadSiaStatsHost(this.publicKey)
+				]);
+			}
 		},
 		async loadAverageSettings() {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPAverageSettings : getSiaAverageSettings;
@@ -424,6 +430,21 @@ export default {
 			let checker = this.network.toLowerCase() === 'scprime' ? getSCPHost : getSiaHost;
 
 			this.hostDetail = await checker(this.publicKey);
+		},
+		async loadSiaStatsHost(key) {
+			try {
+				const url = `https://siastats.info:3510/hosts-api/get_id/${encodeURIComponent(key)}`,
+					resp = await fetch(url),
+					{ status, id } = await resp.json();
+
+				if (status !== 'ok')
+					return;
+
+				this.siastatsID = id;
+				console.log(this.siastatsID);
+			} catch (ex) {
+				console.error(ex);
+			}
 		},
 		async checkHost() {
 			try {
@@ -698,6 +719,14 @@ ul {
 		width: 100%;
 		text-overflow: ellipsis;
 	}
+}
+
+.host-monitor-link {
+	display: block;
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.4);
+	text-decoration: none;
+	text-align: right;
 }
 
 .step-title {
