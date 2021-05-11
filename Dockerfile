@@ -13,6 +13,6 @@ COPY . .
 RUN npm run build
 
 # production
-FROM n8maninger/vue-router
+FROM n8maninger/vue-router:beta
 
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist /www
