@@ -305,10 +305,11 @@ export default {
     align-items: center;
     background: #25272a;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 4px;
 	text-align: center;
 	grid-template-columns: minmax(0, 1fr) auto;
 	font-size: 1rem;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
 	.setting-title {
 		color: primary;

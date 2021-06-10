@@ -1,5 +1,6 @@
 <template>
 	<div class="host-benchmark">
+		<div class="warning" v-if="showUnbenchmarkedWarning">Benchmark data is not available for hosts less than 48 hours old.</div>
 		<div :class="uploadClass">
 			<h3>Upload Speed</h3>
 			<font-awesome :icon="['fad', uploadTachIcon]" />
@@ -26,6 +27,9 @@ export default {
 	},
 	computed: {
 		...mapState(['dataUnit']),
+		showUnbenchmarkedWarning() {
+			return !this.benchmark || !this.benchmark['last_attempt'] || this.benchmark['last_attempt'] === '0001-01-01T00:00:00Z';
+		},
 		uploadSpeed() {
 			const dataSize = this.benchmark && this.benchmark.data_size ? this.benchmark.data_size : 0,
 				time = this.benchmark && this.benchmark.upload_time ? this.benchmark.upload_time / 1000 : 1;
@@ -74,6 +78,9 @@ export default {
 			const delta = this.uploadSpeed / this.avgUploadSpeed;
 			let c = { 'upload': true };
 
+			if (this.showUnbenchmarkedWarning)
+				c['hidden'] = true;
+
 			c[`upload-${this.normalizeSpeedDelta(delta)}`] = true;
 
 			return c;
@@ -81,6 +88,9 @@ export default {
 		downloadClass() {
 			const delta = this.downloadSpeed / this.avgDownloadSpeed;
 			let c = { 'download': true };
+
+			if (this.showUnbenchmarkedWarning)
+				c['hidden'] = true;
 
 			c[`download-${this.normalizeSpeedDelta(delta)}`] = true;
 
@@ -116,12 +126,32 @@ export default {
 
 <style lang="stylus" scoped>
 .host-benchmark {
+	position: relative;
 	display: grid;
 	align-items: center;
 	grid-gap: 15px;
+	min-height: 200px;
+
+	.warning {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 100%;
+		padding: 15px;
+		background: #25272a;
+		border-radius: 4px;
+		transform: translate(-50%, -50%);
+		box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+		z-index: 999;
+	}
 
 	@media screen and (min-width: 767px) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+
+		.warning {
+			width: auto;
+			max-width: 70%;
+		}
 	}
 }
 
@@ -132,6 +162,10 @@ h3 {
 }
 
 .upload, .download {
+	&.hidden {
+		opacity: 0.54;
+	}
+
 	svg {
 		display: block;
 		width: 40%;

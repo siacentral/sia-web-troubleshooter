@@ -535,11 +535,12 @@ export default {
 	display: grid;
 	background: bg-accent;
 	padding: 8px;
-	border-radius: 8px;
+	border-radius: 4px;
 	grid-gap: 15px;
 	grid-template-columns: 45px 1fr;
 	grid-column: 1 / -1;
 	align-items: center;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
 	svg {
 		display: block;
@@ -691,9 +692,10 @@ ul {
 	padding: 15px;
 	grid-gap: 15px;
 	background: bg-accent;
-	border-radius: 8px;
+	border-radius: 4px;
 	grid-column: 1 / -1;
 	align-items: center;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
 	@media screen and (min-width: 767px) {
 		grid-template-columns: auto minmax(0, 1fr);
