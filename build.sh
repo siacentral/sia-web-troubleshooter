@@ -1,2 +1,1 @@
-docker build -t registry.gitlab.com/siacentral/web/troubleshooter:latest .
-docker push registry.gitlab.com/siacentral/web/troubleshooter:latest
+docker buildx build --platform=linux/amd64,linux/arm64 --push -t registry.gitlab.com/siacentral/web/troubleshooter:latest .

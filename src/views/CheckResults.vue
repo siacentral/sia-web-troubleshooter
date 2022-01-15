@@ -62,6 +62,12 @@
 					<div class="info-value">{{ version }}</div>
 					<div class="info-title">Address</div>
 					<div class="info-value">{{ netaddress }}</div>
+					<template v-if="network === 'scprime'">
+						<div class="info-title">OS/Arch</div>
+						<div class="info-value">{{ relayerOSArch }}</div>
+						<div class="info-title">Block Height</div>
+						<div class="info-value">{{ relayerBlockHeight }}</div>
+					</template>
 					<div class="info-title">Public Key</div>
 					<div class="info-value"><input :value="publicKey" readonly /></div>
 					<div class="info-title">First Seen</div>
@@ -135,6 +141,7 @@ export default {
 			benchMode: 'rhp3',
 			hostDetail: {},
 			hostSettings: {},
+			healthReport: null,
 			priceTable: null,
 			averages: {},
 			resolvedIP: [],
@@ -152,7 +159,7 @@ export default {
 	computed: {
 		...mapState(['currency', 'exchangeRate', 'dataUnit']),
 		showRHP3() {
-			return this.network !== 'scprime' && !this.hostSettings?.make?.length;
+			return this.network !== 'scprime';
 		},
 		errors() {
 			let e = [];
@@ -205,6 +212,18 @@ export default {
 
 			return p[p.length - 1];
 		},
+		relayerOSArch() {
+			if (!this.healthReport)
+				return 'Unknown';
+
+			return `${this.healthReport.os}/${this.healthReport.arch}`;
+		},
+		relayerBlockHeight() {
+			if (!this.healthReport)
+				return 'Unknown';
+
+			return this.healthReport.block_height;
+		},
 		remainingRegEntries() {
 			return this.priceTable && this.priceTable.registryentriesleft && isFinite(this.priceTable.registryentriesleft) ? this.priceTable.registryentriesleft : 0;
 		},
@@ -213,6 +232,9 @@ export default {
 		},
 		siaMuxPort() {
 			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
+		},
+		relayerPort() {
+			return this.hostSettings && this.hostSettings.relayer_port ? this.hostSettings.relayer_port : '';
 		},
 		version() {
 			if (this.hostSettings && typeof this.hostSettings.make === 'string' && this.hostSettings.make.length !== 0)
@@ -354,7 +376,8 @@ export default {
 				'host announcement': 'Host Announced',
 				'connectability': `RHP2 Connected${passed && this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `RHP3 Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
+				'siamux': `RHP3 Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`,
+				'relayer': `Relayer${passed && this.relayerPort ? ' (:' + this.relayerPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];
@@ -381,6 +404,7 @@ export default {
 			this.scanned = resp.scanned;
 			this.publicKey = resp.public_key;
 			this.hostSettings = resp.external_settings;
+			this.healthReport = resp.health_report;
 			this.priceTable = resp.price_table || {};
 			this.results = resp.results;
 			this.latency = isNaN(resp.latency) || !isFinite(resp.latency) ? 0 : resp.latency;
