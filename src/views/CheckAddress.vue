@@ -2,7 +2,7 @@
 	<div class="page check-address">
 		<div class="page-content">
 			<div class="upper-content">
-				<form class="panel">
+				<form class="panel" @submit.prevent="onSubmit">
 					<div class="control">
 						<label>Net Address (address and port)</label>
 						<input type="text" v-model="netAddress" />
@@ -15,7 +15,7 @@
 						</select>
 					</div>
 					<div class="button-wrapper">
-						<button class="btn btn-success btn-inline" @click.prevent="onPopupTest">Check My Host</button>
+						<button class="btn btn-success btn-inline">Check My Host</button>
 					</div>
 				</form>
 				<div class="recent-hosts" v-if="showRecents">
@@ -106,18 +106,6 @@ export default {
 	},
 	methods: {
 		...mapActions(['setStyle']),
-		onPopupTest() {
-			const siacentralWallet = window.open('http://localhost:8080/secure-access', 'Sia Central Wallet Access', 'resizable,scrollbars,status,width=400,height=600');
-
-			window.addEventListener('message', (ev) => {
-				console.log('received message');
-				console.log(ev);
-			});
-			setInterval(() => {
-				console.log('sending message');
-				siacentralWallet.postMessage({ address: this.netAddress }, 'http://localhost:8080');
-			}, 300);
-		},
 		onStorageUpdate() {
 			try {
 				let hosts;
