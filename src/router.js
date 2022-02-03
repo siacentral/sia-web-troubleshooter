@@ -7,95 +7,37 @@ export default new Router({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes: [
-		/**
-		 * These endpoints remain for compatibility purposes, eventually I'd like to remove them
-		 */
-		{
-			path: '/results/:address',
-			name: 'check results compat 1',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				return {
-					name: 'check results',
-					params: {
-						...params,
-						network: 'sia'
-					},
-					query
-				};
-			}
-		},
-		{
-			path: '/:network/results/:address',
-			name: 'check results compat 2',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				console.log(params, query);
-
-				return {
-					name: 'check results',
-					params,
-					query
-				};
-			}
-		},
-		{
-			path: '/results/:network/:address',
-			name: 'check results compat 3',
-			redirect: (to) => {
-				const { params, query } = to;
-
-				console.log(params, query);
-
-				return {
-					name: 'check results',
-					params,
-					query
-				};
-			}
-		},
 		{
 			path: '/',
 			name: 'check address',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
 		},
 		{
-			path: '/:network',
-			name: 'check address locked',
-			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`),
+			path: '/sia',
+			name: 'check address sia',
+			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
+		},
+		{
+			path: '/sia/:address',
+			name: 'check results',
+			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: (route) => {
-				let network = (route.params?.network || 'sia').toLowerCase();
-
-				switch (network) {
-				case 'sia':
-				case 'scprime':
-					break;
-				default:
-					network = 'sia';
-				}
 				return {
-					network
+					address: decodeURIComponent(route.params.address)
 				};
 			}
 		},
 		{
-			path: '/:network/:address',
-			name: 'check results',
-			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
+			path: '/scprime',
+			name: 'check address scprime',
+			component: () => import(/* webpackChunkName: "connection-check-scp" */ `@/views/CheckAddressScPrime.vue`)
+		},
+		{
+			path: '/scprime/:address',
+			name: 'check results scprime',
+			component: () => import(/* webpackChunkName: "connection-check-scp" */ `@/views/CheckResultsScPrime.vue`),
 			props: (route) => {
-				let network = (route.params?.network || 'sia').toLowerCase();
-
-				switch (network) {
-				case 'sia':
-				case 'scprime':
-					break;
-				default:
-					network = 'sia';
-				}
 				return {
-					network,
 					address: decodeURIComponent(route.params.address)
 				};
 			}

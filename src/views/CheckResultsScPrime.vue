@@ -1,5 +1,5 @@
 <template>
-	<div class="page">
+	<div class="page scprime">
 		<transition name="fade" mode="out-in" appear>
 			<div class="troubleshoot-content page-content" v-if="loaded">
 				<div class="buttons text-right">
@@ -38,30 +38,31 @@
 						</template>
 					</display-panel>
 				</template>
-				<div class="tests">
-					<div class="host-working" v-if="errors.length === 0">
-						All tests passed! Host working with no issues.
+				<div class="results">
+					<div class="tests">
+						<div class="host-working" v-if="errors.length === 0">
+							All tests passed!
+						</div>
+						<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
+							<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
+						</div>
 					</div>
-					<div :class="{ 'test': true, 'test-passed': result.passed, 'test-failed': !result.passed }" v-for="result in results" :key="result.name">
-						<font-awesome :icon="['fad', testIcon(result.name)]" />{{ testName(result.name, result.passed) }}
+					<div class="info">
+						<div class="info-title">Version</div>
+						<div class="info-value">{{ version }}</div>
+						<div class="info-title">Address</div>
+						<div class="info-value">{{ netaddress }}</div>
+						<div class="info-title">OS/Arch</div>
+						<div class="info-value">{{ relayerOSArch }}</div>
+						<div class="info-title">Block Height</div>
+						<div class="info-value">{{ relayerBlockHeight }}</div>
+						<div class="info-title">Public Key</div>
+						<div class="info-value"><input :value="publicKey" readonly /></div>
+						<div class="info-title">First Seen</div>
+						<div class="info-value">{{ firstAnnouncement }}</div>
+						<div class="info-title">Estimated Uptime</div>
+						<div class="info-value">{{ estimatedUptime }}</div>
 					</div>
-				</div>
-				<div>
-					<benchmark-results :benchmark="benchmark" :average="avgBenchmark" />
-				</div>
-				<div class="info">
-					<div class="info-title">Version</div>
-					<div class="info-value">{{ version }}</div>
-					<div class="info-title">Address</div>
-					<div class="info-value">{{ netaddress }}</div>
-					<div class="info-title">Public Key</div>
-					<div class="info-value"><input :value="publicKey" readonly /></div>
-					<div class="info-title">First Seen</div>
-					<div class="info-value">{{ firstAnnouncement }}</div>
-					<div class="info-title">Estimated Uptime</div>
-					<div class="info-value">{{ estimatedUptime }}</div>
-					<div class="info-title" />
-					<div class="info-value text-right"><button class="host-monitor-link" @click.prevent="openSiaStatsMonitor" :disabled="openingSiaStats"><font-awesome :icon="['fad', 'external-link']" /> view on SiaStats</button></div>
 				</div>
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
@@ -71,15 +72,7 @@
 						<div class="usage" v-html="storageUsageStr" />
 					</div>
 				</div>
-				<div class="registry" v-if="showRegistry">
-					<font-awesome :icon="['fad', 'database']" />
-					<div class="usage-info">
-						<div class="title">Registry Usage</div>
-						<div class="storage-bar"><div class="bar-fill" :style="{ 'width': registryPct }" /></div>
-						<div class="usage" v-html="registryUsageStr" />
-					</div>
-				</div>
-				<host-settings network="sia" :settings="hostSettings" :average="averages.settings || {}" />
+				<host-settings network="scprime" :settings="hostSettings" :average="averages.settings || {}" />
 				<logos class="footer" />
 			</div>
 			<loader v-else text="Checking your host... Please wait..." />
@@ -89,7 +82,6 @@
 </template>
 
 <script>
-import BenchmarkResults from '@/components/BenchmarkResults';
 import ChangeSettingsModal from '@/components/ChangeSettingsModal';
 import DisplayPanel from '@/components/DisplayPanel';
 import HostSettings from '@/components/HostSettings';
@@ -97,12 +89,11 @@ import Loader from '@/components/Loader';
 import Logos from '@/components/Logos';
 
 import { mapState, mapActions } from 'vuex';
-import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability, getSiaHost } from '@/utils/api';
-import { formatByteString, formatDate, formatNumber } from '@/utils/format';
+import { getSCPCoinPrice, getSCPAverageSettings, getSCPConnectability, getSCPHost } from '@/utils/api';
+import { formatByteString, formatDate } from '@/utils/format';
 
 export default {
 	components: {
-		BenchmarkResults,
 		ChangeSettingsModal,
 		DisplayPanel,
 		HostSettings,
@@ -120,11 +111,11 @@ export default {
 				{ name: 'Host Announcement', passed: false },
 				{ name: 'Connectability', passed: false },
 				{ name: 'Retrieve Settings', passed: false },
-				{ name: 'SiaMux', passed: false }
+				{ name: 'Relayer', passed: false }
 			],
-			benchMode: 'rhp3',
 			hostDetail: {},
 			hostSettings: {},
+			healthReport: null,
 			priceTable: null,
 			averages: {},
 			resolvedIP: [],
@@ -135,8 +126,7 @@ export default {
 			scanErrors: [],
 			announcements: [],
 			error: null,
-			modal: null,
-			openingSiaStats: false
+			modal: null
 		};
 	},
 	computed: {
@@ -147,29 +137,11 @@ export default {
 			if (Array.isArray(this.scanErrors))
 				e = e.concat(this.scanErrors);
 
-			if (this.hostDetail.benchmark_rhp2 && this.hostDetail.benchmark_rhp2.error) {
-				e.push({
-					message: 'RHP2 Benchmark failed',
-					reasons: [this.hostDetail.benchmark_rhp2.error],
-					severity: 'warning',
-					type: 'benchmark'
-				});
-			}
-
-			if (this.showRHP3 && this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
-				e.push({
-					message: 'RHP3 Benchmark failed',
-					reasons: [this.hostDetail.benchmark.error],
-					severity: 'warning',
-					type: 'benchmark'
-				});
-			}
-
 			return e;
 		},
 		searchNetAddress() {
 			const components = this.address.split(':'),
-				defaultPort = '9982';
+				defaultPort = '4282';
 
 			if (components.length === 0)
 				return this.address;
@@ -192,32 +164,29 @@ export default {
 
 			return p[p.length - 1];
 		},
-		remainingRegEntries() {
-			return this.priceTable && this.priceTable.registryentriesleft && isFinite(this.priceTable.registryentriesleft) ? this.priceTable.registryentriesleft : 0;
+		relayerOSArch() {
+			if (!this.healthReport)
+				return 'Unknown';
+
+			return `${this.healthReport.os}/${this.healthReport.arch}`;
 		},
-		totalRegEntries() {
-			return this.priceTable && this.priceTable.registryentriestotal && isFinite(this.priceTable.registryentriestotal) ? this.priceTable.registryentriestotal : 0;
+		relayerBlockHeight() {
+			if (!this.healthReport)
+				return 'Unknown';
+
+			return this.healthReport.block_height;
 		},
-		siaMuxPort() {
-			return this.hostSettings && this.hostSettings.sia_mux_port ? this.hostSettings.sia_mux_port : '';
+		relayerPort() {
+			return this.hostSettings && this.hostSettings.relayer_port ? this.hostSettings.relayer_port : '';
 		},
 		version() {
 			if (this.hostSettings && typeof this.hostSettings.make === 'string' && this.hostSettings.make.length !== 0)
 				return `${this.hostSettings.make} ${this.hostSettings.model}`;
 
 			if (this.hostSettings && typeof this.hostSettings.version === 'string' && this.hostSettings.version.length !== 0)
-				return `Sia ${this.hostSettings.version}`;
+				return `ScPrime ${this.hostSettings.version}`;
 
 			return 'unknown';
-		},
-		benchmarked() {
-			return this.hostDetail.benchmark_rhp2 && !this.hostDetail.benchmark_rhp2.error;
-		},
-		r3Benchmarked() {
-			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
-		},
-		avgBenchmark() {
-			return this.averages.benchmarks || {};
 		},
 		firstAnnouncement() {
 			if (!Array.isArray(this.announcements) || this.announcements.length === 0)
@@ -253,54 +222,17 @@ export default {
 				used = total - rem;
 
 			return `${(used / total) * 100}%`;
-		},
-		showRegistry() {
-			return this.totalRegEntries > 0;
-		},
-		registryUsageStr() {
-			if (this.totalRegEntries < this.remainingRegEntries)
-				return '';
-
-			const used = this.totalRegEntries - this.remainingRegEntries;
-
-			return `${formatNumber(used, 0)} <span class="currency-display">entries</span> &sol; ${formatNumber(this.totalRegEntries, 0)} <span class="currency-display">entries</span>`;
-		},
-		registryPct() {
-			if (this.totalRegEntries < this.remainingRegEntries || this.totalRegEntries === 0)
-				return '0%';
-
-			return `${Math.ceil(((this.totalRegEntries - this.remainingRegEntries) / this.totalRegEntries) * 100) || 1}%`;
-		},
-		benchmark() {
-			if (!this.hostDetail)
-				return null;
-
-			if (!this.showRHP3)
-				return this.hostDetail.benchmark_rhp2;
-
-			if ((this.benchMode === 'rhp3' && !this.hostDetail.benchmark) || (this.benchMode === 'rhp3' && !this.hostDetail.benchmark_rhp2))
-				return null;
-
-			if (this.benchMode === 'rhp2')
-				return this.hostDetail.benchmark_rhp2;
-
-			return this.hostDetail.benchmark;
 		}
 	},
 	mounted() {
 		this.newCurrency = this.currency;
 		this.newUnit = this.dataUnit;
+
 		this.updateRecentHosts();
 		this.checkHost();
 	},
 	methods: {
 		...mapActions(['setCurrency', 'setDataUnit', 'setExchangeRate']),
-		showMoreInfo(err) {
-			if (err.message.indexOf('Sia versions below v1.5.4 will be on the old chain after this date') !== -1)
-				return 'https://blog.sia.tech/launching-the-sia-foundation-ee47dfab4d2c';
-
-			return null;
-		},
 		updateRecentHosts() {
 			try {
 				let h;
@@ -316,7 +248,7 @@ export default {
 
 				h.unshift({
 					a: this.address,
-					n: 'sia'
+					n: 'scprime'
 				});
 
 				if (h.length > 100)
@@ -336,7 +268,7 @@ export default {
 				'host announcement': 'Host Announced',
 				'connectability': `RHP2 Connected${passed && this.hostPort ? ' (:' + this.hostPort + ')' : ''}`,
 				'retrieve settings': 'Settings Retrieved',
-				'siamux': `RHP3 Connected${passed && this.siaMuxPort ? ' (:' + this.siaMuxPort + ')' : ''}`
+				'relayer': `Relayer${passed && this.relayerPort ? ' (:' + this.relayerPort + ')' : ''}`
 			};
 
 			return icons[test.toLowerCase()];
@@ -346,14 +278,13 @@ export default {
 				'Net address resolution': 'wifi',
 				'Host Announcement': 'database',
 				'Connectability': 'wifi',
-				'Retrieve Settings': 'cogs',
-				'SiaMux Port Open': 'wifi'
+				'Retrieve Settings': 'cogs'
 			};
 
 			return icons[test] || 'wifi';
 		},
 		async checkConnection() {
-			const resp = await getSiaConnectability(this.searchNetAddress);
+			const resp = await getSCPConnectability(this.searchNetAddress);
 
 			this.netaddress = resp.netaddress;
 			this.resolved = resp.resolved;
@@ -391,46 +322,15 @@ export default {
 			}
 		},
 		async loadAverageSettings() {
-			const resp = await getSiaAverageSettings();
-
+			const resp = await getSCPAverageSettings();
 			this.averages = resp;
 		},
 		async loadPricing() {
-			const pricing = await getSiaCoinPrice();
-
+			const pricing = await getSCPCoinPrice();
 			this.setExchangeRate(pricing);
 		},
 		async loadHost() {
-			this.hostDetail = await getSiaHost(this.publicKey);
-		},
-		async openSiaStatsMonitor() {
-			try {
-				if (this.openingSiaStats)
-					return;
-
-				this.openingSiaStats = true;
-
-				const url = `https://siastats.info:3510/hosts-api/get_id/${encodeURIComponent(this.publicKey)}`,
-					resp = await fetch(url),
-					{ status, id } = await resp.json();
-
-				if (status !== 'ok')
-					return;
-
-				const a = document.createElement('a');
-				a.href = `https://siastats.info/hosts?=${encodeURIComponent(id)}`;
-				a.target = '_blank';
-				a.style.display = 'hidden';
-				a.style.opacity = 0;
-				a.style.position = 'fixed';
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-			} catch (ex) {
-				console.error(ex);
-			} finally {
-				this.openingSiaStats = false;
-			}
+			this.hostDetail = await getSCPHost(this.publicKey);
 		},
 		async checkHost() {
 			try {
@@ -486,6 +386,16 @@ export default {
 	grid-column: 1 / -1;
 }
 
+.results {
+	grid-column: 1 / -1;
+
+	@media screen and (min-width: 767px) {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		grid-gap: 15px;
+	}
+}
+
 .buttons {
 	text-align: right;
 
@@ -509,7 +419,7 @@ export default {
 	}
 }
 
-.storage, .registry {
+.storage {
 	display: grid;
 	background: bg-accent;
 	padding: 8px;
@@ -546,7 +456,7 @@ export default {
 		overflow: hidden;
 
 		.bar-fill {
-			background: primary;
+			background: primary-scp;
 			height: 8px;
 			border-radius: 16px;
 		}
@@ -558,11 +468,6 @@ export default {
 		text-align: center;
 	}
 
-}
-
-.registry svg {
-	width: auto;
-	height: 28px;
 }
 
 .split-button {
@@ -594,7 +499,7 @@ export default {
 		}
 
 		&.btn-active {
-			background: primary;
+			background: primary-scp;
 			color: rgba(0, 0, 0, 0.54);
 		}
 	}
@@ -603,16 +508,19 @@ export default {
 .host-working {
 	font-size: 0.8rem;
 	margin-bottom: 5px;
-	color: primary;
+	color: primary-scp;
 	text-align: center;
 }
 
 .tests {
 	display: grid;
 	border-radius: 8px;
-	padding: 15px 0;
+	padding: 15px;
 	grid-gap: 10px;
 	align-content: space-between;
+	background: bg-accent;
+	border-radius: 4px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
 	.test {
 		display: grid;
@@ -626,11 +534,11 @@ export default {
 
 		&.test-passed {
 			.fa-primary {
-				fill: lighten(primary, 20%);
+				fill: lighten(primary-scp, 20%);
 			}
 
 			.fa-secondary {
-				fill: primary;
+				fill: primary-scp;
 			}
 		}
 
@@ -671,7 +579,6 @@ ul {
 	grid-gap: 15px;
 	background: bg-accent;
 	border-radius: 4px;
-	grid-column: 1 / -1;
 	align-items: center;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
@@ -680,7 +587,7 @@ ul {
 	}
 
 	.info-title {
-		color: primary;
+		color: primary-scp;
 		font-size: 0.8rem;
 		margin-bottom: 5px;
 
@@ -724,7 +631,7 @@ ul {
 	transition: color linear 0.3s;
 
 	&:hover, &:focus, &:active {
-		color: primary;
+		color: primary-scp;
 	}
 
 	&:disabled {

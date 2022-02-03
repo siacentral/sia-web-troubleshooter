@@ -1,5 +1,5 @@
 <template>
-	<div class="page check-address sia">
+	<div class="page check-address scprime">
 		<div class="page-content">
 			<div class="upper-content">
 				<form class="panel" @submit.prevent="onSubmit">
@@ -14,10 +14,10 @@
 				<div class="recent-hosts" v-if="showRecents">
 					<h5>Recent Hosts</h5>
 					<div class="host-group">
-						<div v-for="h in recentSiaHosts" :key="h.netaddress">
-							<router-link
-								:class="h.network"
-								:to="{ name: 'check results', params: { address: encodeURIComponent(h.netaddress) } }">{{ h.netaddress }}</router-link>
+						<div v-for="h in recentSCPHosts" :key="h.netaddress">
+						<router-link
+							:class="h.network"
+							:to="{ name: 'check results scprime', params: { address: encodeURIComponent(h.netaddress) } }">{{ h.netaddress }}</router-link>
 						</div>
 					</div>
 				</div>
@@ -36,16 +36,15 @@ export default {
 	},
 	data() {
 		return {
-			network: 'sia',
-			chosenNetwork: 'sia',
+			network: 'scprime',
+			chosenNetwork: 'scprime',
 			netAddress: '',
-			recentSiaHosts: [],
 			recentSCPHosts: []
 		};
 	},
 	computed: {
 		showRecents() {
-			return this.recentSiaHosts?.length > 0;
+			return this.recentSCPHosts?.length > 0;
 		}
 	},
 	beforeMount() {
@@ -61,7 +60,7 @@ export default {
 		onStorageUpdate() {
 			try {
 				let hosts;
-				const siaHosts = [], dups = {};
+				const scpHosts = [], dups = {};
 
 				try {
 					hosts = JSON.parse(localStorage.getItem('checkedHosts') || []);
@@ -79,8 +78,8 @@ export default {
 					dups[`${h.a}-${h.n}`] = true;
 
 					switch (h.n.toLowerCase()) {
-					case 'sia':
-						siaHosts.push({
+					case 'scprime':
+						scpHosts.push({
 							network: h.n,
 							netaddress: h.a
 						});
@@ -88,17 +87,17 @@ export default {
 					}
 				}
 
-				if (siaHosts.length > 5)
-					siaHosts.splice(5);
+				if (scpHosts.length > 5)
+					scpHosts.splice(5);
 
-				this.recentSiaHosts = siaHosts;
+				this.recentSCPHosts = scpHosts;
 			} catch (ex) {
 				console.error('CheckAddress.onRecentHostsUpdate', ex);
 			}
 		},
 		onSubmit() {
 			this.$router.push({
-				name: 'check results',
+				name: 'check results scprime',
 				params: {
 					address: encodeURIComponent(this.netAddress.toLowerCase())
 				}
@@ -147,14 +146,7 @@ h5 {
 
 	a {
 		margin-bottom: 1px;
-
-		&.sia {
-			color: primary;
-		}
-
-		&.scprime {
-			color: primary-scp;
-		}
+		color: primary-scp;
 	}
 }
 
