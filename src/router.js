@@ -41,6 +41,28 @@ export default new Router({
 					address: decodeURIComponent(route.params.address)
 				};
 			}
+		},
+		{
+			path: '/results/:network/:address',
+			name: 'legacy redirect',
+			redirect: (to) => {
+				switch (to.params.network) {
+				case 'scprime':
+					return {
+						name: 'check results scprime',
+						params: {
+							address: to.params.address
+						}
+					};
+				default:
+					return {
+						name: 'check results',
+						params: {
+							address: to.params.address
+						}
+					};
+				}
+			}
 		}
 	]
 });
