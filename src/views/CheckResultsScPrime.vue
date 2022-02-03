@@ -387,12 +387,12 @@ export default {
 }
 
 .results {
+	display: grid;
+	grid-gap: 15px;
 	grid-column: 1 / -1;
 
 	@media screen and (min-width: 767px) {
-		display: grid;
 		grid-template-columns: auto minmax(0, 1fr);
-		grid-gap: 15px;
 	}
 }
 
