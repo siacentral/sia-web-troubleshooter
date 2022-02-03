@@ -43,6 +43,7 @@ export default new Router({
 			}
 		},
 		{
+			// note: still used by SiaStats
 			path: '/results/:network/:address',
 			name: 'legacy redirect',
 			redirect: (to) => {
