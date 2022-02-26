@@ -64,6 +64,19 @@ export default new Router({
 					};
 				}
 			}
+		},
+		{
+			// note: still used by Host Manager
+			path: '/results/:address',
+			name: 'legacy redirect 2',
+			redirect: (to) => {
+				return {
+					name: 'check results',
+					params: {
+						address: to.params.address
+					}
+				};
+			}
 		}
 	]
 });
