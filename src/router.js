@@ -30,17 +30,16 @@ export default new Router({
 		{
 			path: '/scprime',
 			name: 'check address scprime',
-			component: () => import(/* webpackChunkName: "connection-check-scp" */ `@/views/CheckAddressScPrime.vue`)
+			redirect: (to) => ({
+				name: 'unsupported'
+			})
 		},
 		{
 			path: '/scprime/:address',
 			name: 'check results scprime',
-			component: () => import(/* webpackChunkName: "connection-check-scp" */ `@/views/CheckResultsScPrime.vue`),
-			props: (route) => {
-				return {
-					address: decodeURIComponent(route.params.address)
-				};
-			}
+			redirect: (to) => ({
+				name: 'unsupported'
+			})
 		},
 		{
 			// note: still used by SiaStats
@@ -77,6 +76,11 @@ export default new Router({
 					}
 				};
 			}
+		},
+		{
+			path: '/unsupported',
+			name: 'unsupported',
+			component: () => import(/* webpackChunkName: "unsupported" */ `@/views/Unsupported.vue`)
 		}
 	]
 });
