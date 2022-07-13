@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /results/
+
+User-agent: *
+Disallow: /sia/
+
+User-agent: *
+Disallow: /scprime/
+
+User-agent: *
+Disallow: /unsupported
