@@ -127,26 +127,6 @@
 				<div class="setting-secondary-value" v-html="formatBlockTimeString(avgWindowSize)" />
 			</div>
 		</div>
-		<div class="setting">
-			<div class="setting-title">Max Revise Batch Size</div>
-			<div class="values">
-				<div class="setting-value" v-html="formatByteString(maxReviseSize)" />
-			</div>
-			<div class="average-values">
-				<div class="setting-average-title">Average</div>
-				<div class="setting-value" v-html="formatByteString(avgMaxReviseSize)" />
-			</div>
-		</div>
-		<div class="setting">
-			<div class="setting-title">Max Download Batch Size</div>
-			<div class="values">
-				<div class="setting-value" v-html="formatByteString(maxDownloadSize)" />
-			</div>
-			<div class="average-values">
-				<div class="setting-average-title">Average</div>
-				<div class="setting-value" v-html="formatByteString(avgMaxDownloadSize)" />
-			</div>
-		</div>
 	</div>
 </template>
 
