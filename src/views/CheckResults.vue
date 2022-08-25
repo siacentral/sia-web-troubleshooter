@@ -147,16 +147,7 @@ export default {
 			if (Array.isArray(this.scanErrors))
 				e = e.concat(this.scanErrors);
 
-			if (this.hostDetail.benchmark_rhp2 && this.hostDetail.benchmark_rhp2.error) {
-				e.push({
-					message: 'RHP2 Benchmark failed',
-					reasons: [this.hostDetail.benchmark_rhp2.error],
-					severity: 'warning',
-					type: 'benchmark'
-				});
-			}
-
-			if (this.showRHP3 && this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
+			if (this.hostDetail.benchmark && this.hostDetail.benchmark.error) {
 				e.push({
 					message: 'RHP3 Benchmark failed',
 					reasons: [this.hostDetail.benchmark.error],
@@ -209,12 +200,6 @@ export default {
 				return `Sia ${this.hostSettings.version}`;
 
 			return 'unknown';
-		},
-		benchmarked() {
-			return this.hostDetail.benchmark_rhp2 && !this.hostDetail.benchmark_rhp2.error;
-		},
-		r3Benchmarked() {
-			return this.hostDetail.benchmark && !this.hostDetail.benchmark.error;
 		},
 		avgBenchmark() {
 			return this.averages.benchmarks || {};
@@ -274,15 +259,6 @@ export default {
 		benchmark() {
 			if (!this.hostDetail)
 				return null;
-
-			if (!this.showRHP3)
-				return this.hostDetail.benchmark_rhp2;
-
-			if ((this.benchMode === 'rhp3' && !this.hostDetail.benchmark) || (this.benchMode === 'rhp3' && !this.hostDetail.benchmark_rhp2))
-				return null;
-
-			if (this.benchMode === 'rhp2')
-				return this.hostDetail.benchmark_rhp2;
 
 			return this.hostDetail.benchmark;
 		}
