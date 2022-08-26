@@ -122,7 +122,6 @@ export default {
 				{ name: 'Retrieve Settings', passed: false },
 				{ name: 'SiaMux', passed: false }
 			],
-			benchMode: 'rhp3',
 			hostDetail: {},
 			hostSettings: {},
 			priceTable: null,
