@@ -4,8 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm i \
-	&& npm run build
+RUN npm i && npm run build
 
 FROM n8maninger/vue-router:beta
 
