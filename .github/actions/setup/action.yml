@@ -1,0 +1,22 @@
+name: Setup
+description: Setup
+
+inputs:
+  node_version:
+    description: Node.js version
+    required: false
+    default: ""
+  go-version:
+    description: Go version
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ inputs.node_version }}
+    - name: Install Dependencies
+      run: npm install
