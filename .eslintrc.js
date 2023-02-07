@@ -22,6 +22,7 @@ module.exports = {
 	// add your custom rules here
 	rules: {
 		// allow async-await
+		"template-curly-spacing" : "off",
 		'generator-star-spacing': 'off',
 		'no-tabs': 'off',
 		'indent': ['error', 'tab'],

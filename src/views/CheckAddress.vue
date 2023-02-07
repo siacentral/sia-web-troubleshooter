@@ -7,6 +7,13 @@
 						<label>Net Address (address and port)</label>
 						<input type="text" v-model="netAddress" />
 					</div>
+					<div class="control">
+						<label>Network</label>
+						<select v-model="network">
+							<option value="sia">Sia - Mainnet</option>
+							<option value="zen">Zen - Testnet</option>
+						</select>
+					</div>
 					<div class="button-wrapper">
 						<button class="btn btn-success btn-inline">Check My Host</button>
 					</div>
@@ -37,7 +44,6 @@ export default {
 	data() {
 		return {
 			network: 'sia',
-			chosenNetwork: 'sia',
 			netAddress: '',
 			recentSiaHosts: [],
 			recentSCPHosts: []
@@ -78,13 +84,11 @@ export default {
 
 					dups[`${h.a}-${h.n}`] = true;
 
-					switch (h.n.toLowerCase()) {
-					case 'sia':
+					if (h.n.toLowerCase() === 'sia' || h.n.toLowerCase() === 'zen') {
 						siaHosts.push({
 							network: h.n,
 							netaddress: h.a
 						});
-						break;
 					}
 				}
 
@@ -97,10 +101,12 @@ export default {
 			}
 		},
 		onSubmit() {
+			console.log('onSubmit', this.netAddress, this.network);
 			this.$router.push({
 				name: 'check results',
 				params: {
-					address: encodeURIComponent(this.netAddress.toLowerCase())
+					address: encodeURIComponent(this.netAddress.toLowerCase()),
+					network: this.network.toLowerCase()
 				}
 			});
 		}

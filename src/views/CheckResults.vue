@@ -97,7 +97,7 @@ import Loader from '@/components/Loader';
 import Logos from '@/components/Logos';
 
 import { mapState, mapActions } from 'vuex';
-import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability, getSiaHost } from '@/utils/api';
+import { getSiaCoinPrice, getSiaAverageSettings, getSiaConnectability, getSiaHost, getZenAverageSettings, getZenConnectability, getZenHost } from '@/utils/api';
 import { formatByteString, formatDate, formatNumber } from '@/utils/format';
 
 export default {
@@ -110,7 +110,8 @@ export default {
 		Logos
 	},
 	props: {
-		address: String
+		address: String,
+		network: String
 	},
 	data() {
 		return {
@@ -328,7 +329,15 @@ export default {
 			return icons[test] || 'wifi';
 		},
 		async checkConnection() {
-			const resp = await getSiaConnectability(this.searchNetAddress);
+			let resp;
+			switch (this.network) {
+			case 'zen':
+				resp = await getZenConnectability(this.searchNetAddress);
+				break;
+			default:
+				resp = await getSiaConnectability(this.searchNetAddress);
+				break;
+			}
 
 			this.netaddress = resp.netaddress;
 			this.resolved = resp.resolved;
@@ -366,9 +375,13 @@ export default {
 			}
 		},
 		async loadAverageSettings() {
-			const resp = await getSiaAverageSettings();
-
-			this.averages = resp;
+			switch (this.network) {
+			case 'zen':
+				this.averages = await getZenAverageSettings();
+				break;
+			default:
+				this.averages = await getSiaAverageSettings();
+			}
 		},
 		async loadPricing() {
 			const pricing = await getSiaCoinPrice();
@@ -376,7 +389,14 @@ export default {
 			this.setExchangeRate(pricing);
 		},
 		async loadHost() {
-			this.hostDetail = await getSiaHost(this.publicKey);
+			switch (this.network) {
+			case 'zen':
+				this.hostDetail = await getZenHost(this.publicKey);
+				break;
+			default:
+				this.hostDetail = await getSiaHost(this.publicKey);
+				break;
+			}
 		},
 		async openSiaStatsMonitor() {
 			try {

@@ -13,17 +13,13 @@ export default new Router({
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
 		},
 		{
-			path: '/sia',
-			name: 'check address sia',
-			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckAddress.vue`)
-		},
-		{
-			path: '/sia/:address',
+			path: '/:network/:address',
 			name: 'check results',
 			component: () => import(/* webpackChunkName: "connection-check" */ `@/views/CheckResults.vue`),
 			props: (route) => {
 				return {
-					address: decodeURIComponent(route.params.address)
+					address: decodeURIComponent(route.params.address),
+					network: route.params.network
 				};
 			}
 		},

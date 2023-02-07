@@ -122,3 +122,57 @@ export async function getSCPCoinPrice() {
 
 	return resp.body.scprimecoin;
 }
+
+export async function getZenAverageSettings() {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/zen/hosts/network/averages`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	resp.body.settings = parseSettings(resp.body.settings);
+
+	return resp.body;
+}
+
+export async function getZenHost(netaddress) {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/zen/hosts/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body.host;
+}
+
+export async function getZenConnectability(netaddress) {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/zen/troubleshoot/${encodeURIComponent(netaddress)}`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	resp.body.report.external_settings = parseSettings(resp.body.report.external_settings);
+
+	return resp.body.report;
+}
+
+export async function getZenBlock(height) {
+	let url = `https://api.siacentral.com/v2/zen/explorer/block`;
+
+	if (height)
+		url += `?height=${height}`;
+
+	const resp = await sendJSONRequest(url, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body;
+}
+
+export async function getZenCoinPrice() {
+	const resp = await sendJSONRequest(`https://api.siacentral.com/v2/zen/market/exchange-rate`, 'GET', null, true);
+
+	if (resp.statusCode !== 200)
+		throw new Error(resp.body.message);
+
+	return resp.body.siacoin;
+}
