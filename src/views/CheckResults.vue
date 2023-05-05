@@ -254,7 +254,7 @@ export default {
 			if (this.totalRegEntries < this.remainingRegEntries || this.totalRegEntries === 0)
 				return '0%';
 
-			return `${Math.ceil(((this.totalRegEntries - this.remainingRegEntries) / this.totalRegEntries) * 100) || 1}%`;
+			return `${((this.totalRegEntries - this.remainingRegEntries) / this.totalRegEntries) * 100}%`;
 		},
 		benchmark() {
 			if (!this.hostDetail)
