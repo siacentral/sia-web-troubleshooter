@@ -54,6 +54,7 @@ export default new Router({
 					return {
 						name: 'check results',
 						params: {
+							network: to.params.network,
 							address: to.params.address
 						}
 					};
@@ -68,6 +69,7 @@ export default new Router({
 				return {
 					name: 'check results',
 					params: {
+						network: 'sia',
 						address: to.params.address
 					}
 				};
