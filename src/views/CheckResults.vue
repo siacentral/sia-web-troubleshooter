@@ -133,8 +133,7 @@ export default {
 			scanErrors: [],
 			announcements: [],
 			error: null,
-			modal: null,
-			openingSiaStats: false
+			modal: null
 		};
 	},
 	computed: {
