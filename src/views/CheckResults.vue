@@ -60,8 +60,6 @@
 					<div class="info-value">{{ firstAnnouncement }}</div>
 					<div class="info-title">Estimated Uptime</div>
 					<div class="info-value">{{ estimatedUptime }}</div>
-					<div class="info-title" />
-					<div class="info-value text-right"><button class="host-monitor-link" @click.prevent="openSiaStatsMonitor" :disabled="openingSiaStats"><font-awesome :icon="['fad', 'external-link']" /> view on SiaStats</button></div>
 				</div>
 				<div class="storage">
 					<font-awesome :icon="['fad', 'hdd']" />
@@ -396,35 +394,6 @@ export default {
 			default:
 				this.hostDetail = await getSiaHost(this.publicKey);
 				break;
-			}
-		},
-		async openSiaStatsMonitor() {
-			try {
-				if (this.openingSiaStats)
-					return;
-
-				this.openingSiaStats = true;
-
-				const url = `https://siastats.info:3510/hosts-api/get_id/${encodeURIComponent(this.publicKey)}`,
-					resp = await fetch(url),
-					{ status, id } = await resp.json();
-
-				if (status !== 'ok')
-					return;
-
-				const a = document.createElement('a');
-				a.href = `https://siastats.info/hosts?=${encodeURIComponent(id)}`;
-				a.target = '_blank';
-				a.style.display = 'hidden';
-				a.style.opacity = 0;
-				a.style.position = 'fixed';
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-			} catch (ex) {
-				console.error(ex);
-			} finally {
-				this.openingSiaStats = false;
 			}
 		},
 		async checkHost() {
