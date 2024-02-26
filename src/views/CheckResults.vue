@@ -155,22 +155,6 @@ export default {
 
 			return e;
 		},
-		searchNetAddress() {
-			const components = this.address.split(':'),
-				defaultPort = '9982';
-
-			if (components.length === 0)
-				return this.address;
-			else if (components.length === 1)
-				return `${this.address}:${defaultPort}`;
-
-			const port = parseInt(components[components.length - 1], 10);
-
-			if (!port || isNaN(port) || !isFinite(port))
-				return `${this.address}:${defaultPort}`;
-
-			return this.address;
-		},
 		hostPort() {
 			const addr = this.hostSettings && this.hostSettings.netaddress ? this.hostSettings.netaddress : '',
 				p = addr.split(':');
@@ -329,10 +313,10 @@ export default {
 			let resp;
 			switch (this.network) {
 			case 'zen':
-				resp = await getZenConnectability(this.searchNetAddress);
+				resp = await getZenConnectability(this.address);
 				break;
 			default:
-				resp = await getSiaConnectability(this.searchNetAddress);
+				resp = await getSiaConnectability(this.address);
 				break;
 			}
 
