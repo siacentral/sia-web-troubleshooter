@@ -39,6 +39,7 @@ dependencies:
   test: ^1.25.15
   decimal: ^3.2.1
   intl: ^0.20.2
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:

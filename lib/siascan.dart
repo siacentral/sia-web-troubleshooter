@@ -199,7 +199,7 @@ class RHP4Result {
   final Duration handshakeTime;
   final bool scanned;
   final Duration scanTime;
-  final RHP4Settings settings;
+  final RHP4Settings? settings;
   final List<String> errors;
   final List<String> warnings;
 
@@ -227,7 +227,7 @@ class RHP4Result {
       handshakeTime: Duration(microseconds: (json['handshakeTime'] as int) ~/ 1000), // Go Duration is in nanoseconds
       scanned: json['scanned'] as bool,
       scanTime: Duration(microseconds: (json['scanTime'] as int) ~/ 1000), // Go Duration is in nanoseconds
-      settings: RHP4Settings.fromJson(json['settings'] as Map<String, dynamic>),
+      settings: json['settings'] != null ? RHP4Settings.fromJson(json['settings'] as Map<String, dynamic>) : null,
       errors: json['errors'] != null ? List<String>.from(json['errors'] as List<dynamic>) : [],
       warnings: json['warnings'] != null ? List<String>.from(json['warnings'] as List<dynamic>) : [],
     );

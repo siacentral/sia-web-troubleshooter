@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'utils.dart';
 import 'siascan.dart';
@@ -103,9 +104,42 @@ class _ResultsViewState extends State<ResultsView> {
     );
   }
 
-  Widget _buildSettingsInfo(TroubleshootResponse result) {
-    final rhp4 = result.rhp4.firstWhere((rhp4) => rhp4.connected);
+  String _protoTitle(String proto) {
+    switch (proto.toLowerCase()) {
+      case "siamux":
+        return "SiaMux";
+      case "quic":
+        return "QUIC";
+      default:
+        return proto.toUpperCase();
+    }
+  }
 
+  List<Widget> _buildTestList(BuildContext context, List<RHP4Result> results) {
+    return results
+        .map(
+          (rhp4) => Card.filled(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  leading: Icon(
+                    rhp4.connected ? Icons.check_circle : Icons.error,
+                    color: rhp4.connected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(_protoTitle(rhp4.netAddress.protocol)),
+                  trailing: SelectableText(rhp4.netAddress.address),
+                ),
+              ],
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  Widget _buildSettingsInfo(RHP4Settings settings) {
     return Card.filled(
       elevation: 1.0,
       child: GridView(
@@ -123,7 +157,7 @@ class _ResultsViewState extends State<ResultsView> {
               leading: Icon(Icons.storage),
               title: Text('Storage'),
               subtitle: SelectableText(
-                '${formatSiacoin(rhp4.settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+                '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
               ),
             ),
           ),
@@ -134,7 +168,7 @@ class _ResultsViewState extends State<ResultsView> {
               leading: Icon(Icons.lock),
               title: Text('Collateral'),
               subtitle: SelectableText(
-                '${formatSiacoin(rhp4.settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+                '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
               ),
             ),
           ),
@@ -144,7 +178,7 @@ class _ResultsViewState extends State<ResultsView> {
               leading: Icon(Icons.download),
               title: Text('Ingress'),
               subtitle: SelectableText(
-                '${formatSiacoin(rhp4.settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+                '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
               ),
             ),
           ),
@@ -154,7 +188,7 @@ class _ResultsViewState extends State<ResultsView> {
               leading: Icon(Icons.upload),
               title: Text('Egress'),
               subtitle: SelectableText(
-                '${formatSiacoin(rhp4.settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+                '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
               ),
             ),
           ),
@@ -165,7 +199,7 @@ class _ResultsViewState extends State<ResultsView> {
               leading: Icon(Icons.trending_up),
               title: Text('Max Collateral'),
               subtitle: SelectableText(
-                formatSiacoin(rhp4.settings.maxCollateral),
+                formatSiacoin(settings.maxCollateral),
               ),
             ),
           ),
@@ -173,7 +207,7 @@ class _ResultsViewState extends State<ResultsView> {
             leading: Icon(Icons.timer),
             title: Text('Max Contract Duration'),
             subtitle: SelectableText(
-              '${rhp4.settings.maxContractDuration} blocks',
+              '${settings.maxContractDuration} blocks',
             ),
           ),
         ],
@@ -181,62 +215,62 @@ class _ResultsViewState extends State<ResultsView> {
     );
   }
 
-  Widget _buildGeneralInfo(TroubleshootResponse result) {
-    final rhp4 = result.rhp4.firstWhere((rhp4) => rhp4.connected);
+  Widget _buildStorageInfo(RHP4Settings settings) {
     final storageUsedBytes =
-        (rhp4.settings.totalStorage - rhp4.settings.remainingStorage) *
-        _sectorSize;
-    final totalStorageBytes = rhp4.settings.totalStorage * _sectorSize;
+        (settings.totalStorage - settings.remainingStorage) * _sectorSize;
+    final totalStorageBytes = settings.totalStorage * _sectorSize;
     final storageUsedPercentage = storageUsedBytes / totalStorageBytes;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Card.filled(
-          elevation: 1.0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.key),
-                title: Text('Public Key'),
-                subtitle: SelectableText(result.publicKey),
-              ),
-              ListTile(
-                leading: Icon(Icons.info),
-                title: Text('Version'),
-                subtitle: SelectableText(result.version),
-              ),
-            ],
+    return Card.filled(
+      elevation: 1.0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4.0,
+        children: [
+          ListTile(
+            leading: Icon(Icons.storage),
+            title: Text('Storage Usage'),
+            trailing: Text(
+              '${formatFileSize(storageUsedBytes)} / ${formatFileSize(totalStorageBytes)}',
+            ),
           ),
-        ),
-        Card.filled(
-          elevation: 1.0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            spacing: 4.0,
-            children: [
-              ListTile(
-                leading: Icon(Icons.storage),
-                title: Text('Storage Usage'),
-                trailing: Text(
-                  '${formatFileSize(storageUsedBytes)} / ${formatFileSize(totalStorageBytes)}',
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: LinearProgressIndicator(
-                  minHeight: 8.0,
-                  value: storageUsedPercentage,
-                  color: Theme.of(context).colorScheme.primary,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceDim,
-                ),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: LinearProgressIndicator(
+              minHeight: 8.0,
+              value: storageUsedPercentage,
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surfaceDim,
+              borderRadius: BorderRadius.circular(4.0),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeneralInfo(String publicKey, String version, RHP4Result rhp4) {
+    return Card.filled(
+      elevation: 1.0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.key),
+            title: Text('Public Key'),
+            subtitle: SelectableText(publicKey),
+          ),
+          ListTile(
+            leading: Icon(Icons.info),
+            title: Text('Version'),
+            subtitle: SelectableText(version),
+          ),
+        ],
+      ),
     );
   }
 
@@ -259,6 +293,45 @@ class _ResultsViewState extends State<ResultsView> {
             .expand((rhp4) => rhp4.warnings)
             .toSet();
 
+        final List<Widget> display = [];
+        if (errorsList.isNotEmpty) {
+          display.add(_buildErrorList(context, errorsList));
+        }
+        if (warningsList.isNotEmpty) {
+          display.add(_buildWarningList(warningsList));
+        }
+        display.addAll(_buildTestList(context, result.rhp4));
+
+        final rhp4 = result.rhp4.firstWhereOrNull((rhp4) => rhp4.connected);
+        if (rhp4 == null) {
+          display.add(
+            Card.filled(
+              child: Padding(
+                padding: EdgeInsetsGeometry.symmetric(
+                  vertical: 16.0,
+                  horizontal: 24.0,
+                ),
+                child: Text(
+                  'All tests failed. Please check your network connection or the host status.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ),
+          );
+        } else {
+          display.add(
+            _buildGeneralInfo(result.publicKey, result.version, rhp4),
+          );
+          if (rhp4.settings != null) {
+            display.add(_buildStorageInfo(rhp4.settings!));
+            display.add(_buildSettingsInfo(rhp4.settings!));
+          }
+        }
+
+        if (display.isEmpty) {
+          return Center(child: Text('Host Test Failed'));
+        }
+
         return Scaffold(
           appBar: AppBar(title: Text('Results')),
           body: SingleChildScrollView(
@@ -266,16 +339,7 @@ class _ResultsViewState extends State<ResultsView> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800.0),
-                child: Column(
-                  children: [
-                    if (errorsList.isNotEmpty)
-                      _buildErrorList(context, errorsList),
-                    if (warningsList.isNotEmpty)
-                      _buildWarningList(warningsList),
-                    _buildGeneralInfo(result),
-                    _buildSettingsInfo(result),
-                  ],
-                ),
+                child: Column(children: display),
               ),
             ),
           ),
