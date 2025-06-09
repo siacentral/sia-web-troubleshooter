@@ -215,34 +215,22 @@ class _ResultsViewState extends State<ResultsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            spacing: 8.0,
+            spacing: 4.0,
             children: [
               ListTile(
                 leading: Icon(Icons.storage),
                 title: Text('Storage Usage'),
+                trailing: Text(
+                  '${formatFileSize(storageUsedBytes)} / ${formatFileSize(totalStorageBytes)}',
+                ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: LinearProgressIndicator(
                   minHeight: 8.0,
                   value: storageUsedPercentage,
                   color: Theme.of(context).colorScheme.primary,
                   backgroundColor: Theme.of(context).colorScheme.surfaceDim,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                child: Center(
-                  child: SelectableText(
-                    '${formatFileSize(storageUsedBytes)} used of ${formatFileSize(totalStorageBytes)} total',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
                 ),
               ),
             ],
