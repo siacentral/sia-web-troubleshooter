@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 
 RUN flutter clean
-RUN flutter build web --release --wasm
+RUN flutter build web --release
 
 FROM caddy:2
 
