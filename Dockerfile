@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm AS build
 
 RUN apt-get update -y && apt-get upgrade -y && apt-get install -y build-essential curl git unzip xz-utils zip libglu1-mesa
 
@@ -18,7 +18,7 @@ RUN flutter build web --release --wasm
 
 FROM caddy:2
 
-COPY --from=0 /app/build/web /web
+COPY --from=build /app/build/web /web
 
 EXPOSE 80
 
