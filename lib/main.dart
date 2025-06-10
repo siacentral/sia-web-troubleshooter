@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troubleshooter/utils.dart';
 import 'results.dart';
-import 'siascan.dart' as siascan;
 
 void main() {
   runApp(TroubleshootApp());
@@ -71,7 +71,7 @@ class _TroubleshootViewState extends State<TroubleshootView> {
 
   Future<void> _searchHostPublicKey(String netaddress) async {
     try {
-      final api = siascan.Api('https://api.siascan.com');
+      final api = getApi(selectedNetwork);
       final result = await api.host(netAddress: netaddress);
 
       if (!mounted) return;

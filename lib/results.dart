@@ -13,7 +13,7 @@ class _ResultsViewState extends State<ResultsView> {
     String network,
     String publicKey,
   ) async {
-    final api = Api('https://api.siascan.com');
+    final api = getApi(network);
     final host = await api.host(publicKey: publicKey);
     return api.troubleshoot(
       publicKey: host.publicKey,

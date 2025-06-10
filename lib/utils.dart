@@ -2,6 +2,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/intl_browser.dart';
+import 'package:troubleshooter/siascan.dart';
 
 var locale = findSystemLocale(); // should probably wait for this to complete, but meh
 
@@ -24,4 +25,17 @@ String formatSiacoin(Decimal value) {
 
   NumberFormat format = NumberFormat();
   return "${format.format(value.toDouble())} SC";
+}
+
+Api getApi(String network) {
+  switch (network.toLowerCase()) {
+    case 'mainnet':
+      return Api('https://api.siascan.com');
+    case 'zen':
+      return Api('https://api.siascan.com/zen');
+    case 'anagami':
+      return Api('https://api.siascan.com/anagami');
+    default:
+      throw ArgumentError('Unknown network: $network');
+  }
 }
