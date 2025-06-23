@@ -26,4 +26,6 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=registry,ref=ghcr.io/siacentral/sia-web-troubleshooter:buildcache
+          cache-to: type=registry,ref=ghcr.io/siacentral/sia-web-troubleshooter:buildcache,mode=max
           tags: ghcr.io/siacentral/sia-web-troubleshooter:latest
