@@ -129,8 +129,11 @@ class _ResultsViewState extends State<ResultsView> {
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context).colorScheme.error,
                   ),
-                  title: Text(_protoTitle(rhp4.netAddress.protocol)),
-                  trailing: SelectableText(rhp4.netAddress.address),
+                  title: Text(
+                    _protoTitle(rhp4.netAddress.protocol),
+                    maxLines: 1,
+                  ),
+                  subtitle: SelectableText(rhp4.netAddress.address),
                 ),
               ],
             ),
@@ -140,78 +143,82 @@ class _ResultsViewState extends State<ResultsView> {
   }
 
   Widget _buildSettingsInfo(RHP4Settings settings) {
+    final children = <Widget>[
+        Tooltip(
+          message:
+              'Storage is the cost of storing one terabyte of data for one month on the host.',
+          child: ListTile(
+            leading: Icon(Icons.storage),
+            title: Text('Storage'),
+            subtitle: SelectableText(
+              '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+            ),
+          ),
+        ),
+        Tooltip(
+          message:
+              'Collateral is the amount of Siacoin the host will risk to store one terabyte of data for one month.',
+          child: ListTile(
+            leading: Icon(Icons.lock),
+            title: Text('Collateral'),
+            subtitle: SelectableText(
+              '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+            ),
+          ),
+        ),
+        Tooltip(
+          message: 'Ingress is the data sent from the renter to the host.',
+          child: ListTile(
+            leading: Icon(Icons.download),
+            title: Text('Ingress'),
+            subtitle: SelectableText(
+              '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+            ),
+          ),
+        ),
+        Tooltip(
+          message: 'Egress is the data sent from the host to the renter.',
+          child: ListTile(
+            leading: Icon(Icons.upload),
+            title: Text('Egress'),
+            subtitle: SelectableText(
+              '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+            ),
+          ),
+        ),
+        Tooltip(
+          message:
+              "Max Collateral is the maximum amount of collateral the host is willing to lock into a contract.",
+          child: ListTile(
+            leading: Icon(Icons.trending_up),
+            title: Text('Max Collateral'),
+            subtitle: SelectableText(
+              formatSiacoin(settings.maxCollateral),
+            ),
+          ),
+        ),
+        ListTile(
+          leading: Icon(Icons.timer),
+          title: Text('Max Contract Duration'),
+          subtitle: SelectableText(
+            '${settings.maxContractDuration} blocks',
+          ),
+        ),
+      ];
     return Card.filled(
       elevation: 1.0,
-      child: GridView(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 5,
-        ),
-        children: [
-          Tooltip(
-            message:
-                'Storage is the cost of storing one terabyte of data for one month on the host.',
-            child: ListTile(
-              leading: Icon(Icons.storage),
-              title: Text('Storage'),
-              subtitle: SelectableText(
-                '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-              ),
-            ),
-          ),
-          Tooltip(
-            message:
-                'Collateral is the amount of Siacoin the host will risk to store one terabyte of data for one month.',
-            child: ListTile(
-              leading: Icon(Icons.lock),
-              title: Text('Collateral'),
-              subtitle: SelectableText(
-                '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-              ),
-            ),
-          ),
-          Tooltip(
-            message: 'Ingress is the data sent from the renter to the host.',
-            child: ListTile(
-              leading: Icon(Icons.download),
-              title: Text('Ingress'),
-              subtitle: SelectableText(
-                '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-              ),
-            ),
-          ),
-          Tooltip(
-            message: 'Egress is the data sent from the host to the renter.',
-            child: ListTile(
-              leading: Icon(Icons.upload),
-              title: Text('Egress'),
-              subtitle: SelectableText(
-                '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-              ),
-            ),
-          ),
-          Tooltip(
-            message:
-                "Max Collateral is the maximum amount of collateral the host is willing to lock into a contract.",
-            child: ListTile(
-              leading: Icon(Icons.trending_up),
-              title: Text('Max Collateral'),
-              subtitle: SelectableText(
-                formatSiacoin(settings.maxCollateral),
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.timer),
-            title: Text('Max Contract Duration'),
-            subtitle: SelectableText(
-              '${settings.maxContractDuration} blocks',
-            ),
-          ),
-        ],
-      ),
+      child: LayoutBuilder(builder:(context, constraints) {
+        if (constraints.maxWidth <= 600) {
+          return Column(children: children);
+        }
+        
+        return Column(children: children.slices(2).map((chunk) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: chunk.map((tile) => Expanded(child: tile)).toList(),
+          );
+        }).toList());
+      })
     );
   }
 
