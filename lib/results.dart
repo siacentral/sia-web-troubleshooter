@@ -144,61 +144,41 @@ class _ResultsViewState extends State<ResultsView> {
 
   Widget _buildSettingsInfo(RHP4Settings settings) {
     final children = <Widget>[
-      Tooltip(
-        message:
-            'Storage is the cost of storing one terabyte of data for one month on the host.',
-        child: ListTile(
-          leading: Icon(Icons.storage),
-          title: Text('Storage'),
-          subtitle: SelectableText(
-            '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-          ),
-        ),
+      SettingsItem(
+        icon: Icon(Icons.storage),
+        title: 'Storage Price',
+        subtitle: '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+        tooltip: 'The cost to store one terabyte of data for one month.',
       ),
-      Tooltip(
-        message:
-            'Collateral is the amount of Siacoin the host will risk to store one terabyte of data for one month.',
-        child: ListTile(
-          leading: Icon(Icons.lock),
-          title: Text('Collateral'),
-          subtitle: SelectableText(
-            '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-          ),
-        ),
+      SettingsItem(
+        icon: Icon(Icons.lock),
+        title: 'Collateral',
+        subtitle: '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+        tooltip: 'The amount of Siacoin the host will risk to store one terabyte of data for one month.',
       ),
-      Tooltip(
-        message: 'Ingress is the data sent from the renter to the host.',
-        child: ListTile(
-          leading: Icon(Icons.download),
-          title: Text('Ingress'),
-          subtitle: SelectableText(
-            '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-          ),
-        ),
+      SettingsItem(
+        icon: Icon(Icons.download),
+        title: 'Ingress Price',
+        subtitle: '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+        tooltip: 'The cost to upload one terabyte of data to the host.',
       ),
-      Tooltip(
-        message: 'Egress is the data sent from the host to the renter.',
-        child: ListTile(
-          leading: Icon(Icons.upload),
-          title: Text('Egress'),
-          subtitle: SelectableText(
-            '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-          ),
-        ),
+      SettingsItem(
+        icon: Icon(Icons.upload),
+        title: 'Egress Price',
+        subtitle: '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+        tooltip: 'The cost to download one terabyte of data from the host.',
       ),
-      Tooltip(
-        message:
-            "Max Collateral is the maximum amount of collateral the host is willing to lock into a contract.",
-        child: ListTile(
-          leading: Icon(Icons.trending_up),
-          title: Text('Max Collateral'),
-          subtitle: SelectableText(formatSiacoin(settings.maxCollateral)),
-        ),
+      SettingsItem(
+        icon: Icon(Icons.trending_up),
+        title: 'Max Collateral',
+        subtitle: formatSiacoin(settings.maxCollateral),
+        tooltip: "The maximum amount of collateral the host is willing to lock into a single contract.",
       ),
-      ListTile(
-        leading: Icon(Icons.timer),
-        title: Text('Max Contract Duration'),
-        subtitle: SelectableText('${settings.maxContractDuration} blocks'),
+      SettingsItem(
+        icon: Icon(Icons.timer),
+        title: 'Max Contract Duration',
+        subtitle: '${formatBlockTime(settings.maxContractDuration)} (${formatNumeric(settings.maxContractDuration)} blocks)',
+        tooltip: 'The maximum duration of a contract with the host.',
       ),
     ];
     return Card.filled(
@@ -312,9 +292,17 @@ class _ResultsViewState extends State<ResultsView> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return _buildCriticalError(context, "Failed to test host", snapshot.error.toString());
+          return _buildCriticalError(
+            context,
+            "Failed to test host",
+            snapshot.error.toString(),
+          );
         } else if (!snapshot.hasData) {
-          return _buildCriticalError(context, "Unknown error", "Something unexpected happened... Please reload...");
+          return _buildCriticalError(
+            context,
+            "Unknown error",
+            "Something unexpected happened... Please reload...",
+          );
         }
 
         final result = snapshot.data!;
@@ -359,7 +347,11 @@ class _ResultsViewState extends State<ResultsView> {
         }
 
         if (display.isEmpty) {
-          return _buildCriticalError(context, "Failed to test host", "Something unexpected happened... Please reload...");
+          return _buildCriticalError(
+            context,
+            "Failed to test host",
+            "Something unexpected happened... Please reload...",
+          );
         }
         return SingleChildScrollView(
           child: Padding(
@@ -384,6 +376,41 @@ class _ResultsViewState extends State<ResultsView> {
     return Scaffold(
       appBar: AppBar(title: Text('Results')),
       body: _buildResults(context),
+    );
+  }
+}
+
+class SettingsItem extends StatelessWidget {
+  final Icon icon;
+  final String title;
+  final String subtitle;
+  final String? tooltip;
+
+  const SettingsItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (tooltip == null || tooltip!.isEmpty) {
+      return ListTile(
+        leading: icon,
+        title: Text(title),
+        subtitle: SelectableText(subtitle),
+      );
+    }
+    return Tooltip(
+      constraints: const BoxConstraints(maxWidth: 300.0),
+      message: tooltip,
+      child: ListTile(
+        leading: icon,
+        title: Text(title),
+        subtitle: SelectableText(subtitle),
+      ),
     );
   }
 }
