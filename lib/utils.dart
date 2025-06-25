@@ -33,8 +33,6 @@ Api getApi(String network) {
       return Api('https://api.siascan.com');
     case 'zen':
       return Api('https://api.siascan.com/zen');
-    case 'anagami':
-      return Api('https://api.siascan.com/anagami');
     default:
       throw ArgumentError('Unknown network: $network');
   }

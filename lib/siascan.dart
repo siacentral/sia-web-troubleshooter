@@ -220,7 +220,7 @@ class RHP4Result {
   factory RHP4Result.fromJson(Map<String, dynamic> json) {
     return RHP4Result(
       netAddress: V2NetAddress.fromJson(json['netAddress'] as Map<String, dynamic>),
-      resolvedAddresses: List<String>.from(json['resolvedAddresses'] as List<dynamic>),
+      resolvedAddresses: List<String>.from(json['resolvedAddresses'] as List<dynamic>? ?? []),
       connected: json['connected'] as bool,
       dialTime: Duration(microseconds: (json['dialTime'] as int) ~/ 1000), // Go Duration is in nanoseconds
       handshake: json['handshake'] as bool,

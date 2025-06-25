@@ -154,10 +154,6 @@ class _TroubleshootViewState extends State<TroubleshootView> {
                         child: Text('Mainnet'),
                       ),
                       DropdownMenuItem(value: 'zen', child: Text('Zen')),
-                      DropdownMenuItem(
-                        value: 'anagami',
-                        child: Text('Anagami'),
-                      ),
                     ],
                     onChanged: (value) {},
                   ),
