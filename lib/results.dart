@@ -144,81 +144,81 @@ class _ResultsViewState extends State<ResultsView> {
 
   Widget _buildSettingsInfo(RHP4Settings settings) {
     final children = <Widget>[
-        Tooltip(
-          message:
-              'Storage is the cost of storing one terabyte of data for one month on the host.',
-          child: ListTile(
-            leading: Icon(Icons.storage),
-            title: Text('Storage'),
-            subtitle: SelectableText(
-              '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-            ),
-          ),
-        ),
-        Tooltip(
-          message:
-              'Collateral is the amount of Siacoin the host will risk to store one terabyte of data for one month.',
-          child: ListTile(
-            leading: Icon(Icons.lock),
-            title: Text('Collateral'),
-            subtitle: SelectableText(
-              '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
-            ),
-          ),
-        ),
-        Tooltip(
-          message: 'Ingress is the data sent from the renter to the host.',
-          child: ListTile(
-            leading: Icon(Icons.download),
-            title: Text('Ingress'),
-            subtitle: SelectableText(
-              '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-            ),
-          ),
-        ),
-        Tooltip(
-          message: 'Egress is the data sent from the host to the renter.',
-          child: ListTile(
-            leading: Icon(Icons.upload),
-            title: Text('Egress'),
-            subtitle: SelectableText(
-              '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
-            ),
-          ),
-        ),
-        Tooltip(
-          message:
-              "Max Collateral is the maximum amount of collateral the host is willing to lock into a contract.",
-          child: ListTile(
-            leading: Icon(Icons.trending_up),
-            title: Text('Max Collateral'),
-            subtitle: SelectableText(
-              formatSiacoin(settings.maxCollateral),
-            ),
-          ),
-        ),
-        ListTile(
-          leading: Icon(Icons.timer),
-          title: Text('Max Contract Duration'),
+      Tooltip(
+        message:
+            'Storage is the cost of storing one terabyte of data for one month on the host.',
+        child: ListTile(
+          leading: Icon(Icons.storage),
+          title: Text('Storage'),
           subtitle: SelectableText(
-            '${settings.maxContractDuration} blocks',
+            '${formatSiacoin(settings.prices.storagePrice * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
           ),
         ),
-      ];
+      ),
+      Tooltip(
+        message:
+            'Collateral is the amount of Siacoin the host will risk to store one terabyte of data for one month.',
+        child: ListTile(
+          leading: Icon(Icons.lock),
+          title: Text('Collateral'),
+          subtitle: SelectableText(
+            '${formatSiacoin(settings.prices.collateral * Decimal.fromInt(4320) * Decimal.fromBigInt(BigInt.from(1e12)))} per TB per month',
+          ),
+        ),
+      ),
+      Tooltip(
+        message: 'Ingress is the data sent from the renter to the host.',
+        child: ListTile(
+          leading: Icon(Icons.download),
+          title: Text('Ingress'),
+          subtitle: SelectableText(
+            '${formatSiacoin(settings.prices.ingressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+          ),
+        ),
+      ),
+      Tooltip(
+        message: 'Egress is the data sent from the host to the renter.',
+        child: ListTile(
+          leading: Icon(Icons.upload),
+          title: Text('Egress'),
+          subtitle: SelectableText(
+            '${formatSiacoin(settings.prices.egressPrice * Decimal.fromBigInt(BigInt.from(1e12)))} per TB',
+          ),
+        ),
+      ),
+      Tooltip(
+        message:
+            "Max Collateral is the maximum amount of collateral the host is willing to lock into a contract.",
+        child: ListTile(
+          leading: Icon(Icons.trending_up),
+          title: Text('Max Collateral'),
+          subtitle: SelectableText(formatSiacoin(settings.maxCollateral)),
+        ),
+      ),
+      ListTile(
+        leading: Icon(Icons.timer),
+        title: Text('Max Contract Duration'),
+        subtitle: SelectableText('${settings.maxContractDuration} blocks'),
+      ),
+    ];
     return Card.filled(
       elevation: 1.0,
-      child: LayoutBuilder(builder:(context, constraints) {
-        if (constraints.maxWidth <= 600) {
-          return Column(children: children);
-        }
-        
-        return Column(children: children.slices(2).map((chunk) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: chunk.map((tile) => Expanded(child: tile)).toList(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth <= 600) {
+            return Column(children: children);
+          }
+
+          return Column(
+            children: children.slices(2).map((chunk) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: chunk.map((tile) => Expanded(child: tile)).toList(),
+              );
+            }).toList(),
           );
-        }).toList());
-      })
+        },
+      ),
     );
   }
 
@@ -281,17 +281,40 @@ class _ResultsViewState extends State<ResultsView> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCriticalError(BuildContext context, String title, String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 600.0),
+          child: Card.filled(
+            child: ListTile(
+              leading: Icon(
+                Icons.error,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(title),
+              subtitle: SelectableText(
+                error,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResults(BuildContext context) {
     return FutureBuilder<TroubleshootResponse>(
       future: _checkFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return _buildCriticalError(context, "Failed to test host", snapshot.error.toString());
         } else if (!snapshot.hasData) {
-          return Center(child: Text('No data found'));
+          return _buildCriticalError(context, "Unknown error", "Something unexpected happened... Please reload...");
         }
 
         final result = snapshot.data!;
@@ -336,22 +359,31 @@ class _ResultsViewState extends State<ResultsView> {
         }
 
         if (display.isEmpty) {
-          return Center(child: Text('Host Test Failed'));
+          return _buildCriticalError(context, "Failed to test host", "Something unexpected happened... Please reload...");
         }
-
-        return Scaffold(
-          appBar: AppBar(title: Text('Results')),
-          body: SingleChildScrollView(
+        return SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800.0),
-                child: Column(children: display),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: display,
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Results')),
+      body: _buildResults(context),
     );
   }
 }
