@@ -1,13 +1,14 @@
 import 'package:decimal/decimal.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'utils.dart';
 import 'siascan.dart';
 
 const int _sectorSize = 4194304; // 4 MiB
 
 class _ResultsViewState extends State<ResultsView> {
-  late final Future<TroubleshootResponse> _checkFuture;
+  late Future<TroubleshootResponse> _checkFuture;
 
   Future<TroubleshootResponse> _performCheck(
     String network,
@@ -374,7 +375,24 @@ class _ResultsViewState extends State<ResultsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Results')),
+      appBar: AppBar(
+        title: Text('Results'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => context.go("/"),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _checkFuture = _performCheck(widget.network, widget.publicKey);
+              });
+            },
+            tooltip: 'Retry',
+          ),
+        ],
+      ),
       body: _buildResults(context),
     );
   }

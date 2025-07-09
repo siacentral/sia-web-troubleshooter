@@ -9,14 +9,19 @@ void main() {
 
 final _router = GoRouter(
   routes: [
-    GoRoute(path: '/', builder: (context, state) => TroubleshootView()),
     GoRoute(
-      path: '/:network/:publicKey',
-      builder: (context, state) {
-        final network = state.pathParameters['network']!;
-        final publicKey = state.pathParameters['publicKey']!;
-        return ResultsView(network, publicKey);
-      },
+      path: '/',
+      builder: (context, state) => TroubleshootView(),
+      routes: [
+        GoRoute(
+          path: '/:network/:publicKey',
+          builder: (context, state) {
+            final network = state.pathParameters['network']!;
+            final publicKey = state.pathParameters['publicKey']!;
+            return ResultsView(network, publicKey);
+          },
+        ),
+      ]
     ),
   ],
 );
