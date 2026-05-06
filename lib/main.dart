@@ -74,6 +74,25 @@ class _TroubleshootViewState extends State<TroubleshootView> {
   String selectedNetwork = 'mainnet';
   bool isLoading = false;
 
+  void _submit() {
+    if (isLoading) return;
+
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Public Key or Net Address is required'),
+        ),
+      );
+      return;
+    }
+    _formKey.currentState?.save();
+    if (!hostSearchTerm.startsWith('ed25519:')) {
+      _searchHostPublicKey(hostSearchTerm);
+      return;
+    }
+    context.go('/$selectedNetwork/$hostSearchTerm');
+  }
+
   Future<void> _searchHostPublicKey(String netaddress) async {
     try {
       final api = getApi(selectedNetwork);
@@ -110,6 +129,8 @@ class _TroubleshootViewState extends State<TroubleshootView> {
                 spacing: 24.0,
                 children: <Widget>[
                   TextFormField(
+                    textInputAction: TextInputAction.go,
+                    onFieldSubmitted: (_) => _submit(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Public Key or Net Address is required';
@@ -163,28 +184,7 @@ class _TroubleshootViewState extends State<TroubleshootView> {
                     onChanged: (value) {},
                   ),
                   FilledButton(
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                            if (isLoading) return;
-
-                            if (!_formKey.currentState!.validate()) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Public Key or Net Address is required',
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-                            _formKey.currentState?.save();
-                            if (!hostSearchTerm.startsWith('ed25519:')) {
-                              _searchHostPublicKey(hostSearchTerm);
-                              return;
-                            }
-                            context.go('/$selectedNetwork/$hostSearchTerm');
-                          },
+                    onPressed: isLoading ? null : _submit,
                     child: const Text('Check Host Status'),
                   ),
                 ],
