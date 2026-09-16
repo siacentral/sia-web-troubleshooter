@@ -1,3 +1,18 @@
+FROM --platform=$BUILDPLATFORM rust:slim AS wasm
+
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get clean
+
+RUN rustup target add wasm32-unknown-unknown
+RUN curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+
+WORKDIR /wasm
+
+COPY wasm /wasm
+
+RUN wasm-pack build --release --target web --no-typescript --no-pack --out-dir /wasm/pkg --out-name troubleshooter_wasm
+
 FROM debian:latest AS build
 
 RUN apt-get update
@@ -16,6 +31,7 @@ RUN flutter config --enable-web
 WORKDIR /app
 
 COPY . /app
+COPY --from=wasm /wasm/pkg /app/web/wasm
 
 RUN flutter pub get
 RUN flutter build web --release

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'utils.dart';
 import 'siascan.dart';
+import 'webtransport.dart';
 
 const int _sectorSize = 4194304; // 4 MiB
 
@@ -16,9 +17,20 @@ class _ResultsViewState extends State<ResultsView> {
   ) async {
     final api = getApi(network);
     final host = await api.host(publicKey: publicKey);
-    return api.troubleshoot(
+    final serverCheck = api.troubleshoot(
       publicKey: host.publicKey,
       rhp4NetAddresses: host.v2NetAddresses,
+    );
+    final webTransportCheck = Future.wait(
+      host.v2NetAddresses
+          .where((addr) => addr.protocol.toLowerCase() == 'quic')
+          .map((addr) => scanWebTransport(addr, host.publicKey)),
+    );
+    final response = await serverCheck;
+    return TroubleshootResponse(
+      publicKey: response.publicKey,
+      version: response.version,
+      rhp4: [...response.rhp4, ...await webTransportCheck],
     );
   }
 
@@ -111,6 +123,8 @@ class _ResultsViewState extends State<ResultsView> {
         return "SiaMux";
       case "quic":
         return "QUIC";
+      case "webtransport":
+        return "WebTransport (browser)";
       default:
         return proto.toUpperCase();
     }

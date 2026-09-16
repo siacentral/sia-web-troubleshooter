@@ -1,0 +1,4 @@
+[build]
+target = "wasm32-unknown-unknown"
+# web-sys gates its WebTransport bindings behind this cfg; it must be set by the final build.
+rustflags = ["--cfg=web_sys_unstable_apis"]
